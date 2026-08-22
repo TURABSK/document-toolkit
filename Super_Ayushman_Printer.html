@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ayushman Auto-Fit PVC Printer (Front & Back Perfect)</title>
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- JSZip Library (For saving files) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #e9ecef; margin: 0; padding: 20px; text-align: center; }
+        
+        .header { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { margin: 0; color: #d9534f; font-size: 20px; }
+        .sub { color: #555; font-size: 13px; margin-top: 6px; }
+
+        .btn { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; margin: 5px; font-weight: bold; }
+        .btn:hover { background: #218838; }
+        .btn-print { background: #007bff; }
+        .btn-print:hover { background: #0056b3; }
+        .btn-save { background: #6f42c1; } 
+        .btn-save:hover { background: #5a32a3; }
+        .btn-del { background: #dc3545; }
+        .btn:disabled { background: #adb5bd; cursor: not-allowed; }
+        
+        select.quality-select { padding: 9px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; cursor: pointer; color: #333; margin-right: 5px; vertical-align: middle; }
+
+        /* Processing indicator */
+        .processing-box {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 16px;
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        /* A4 */
+        #a4-page {
+            width: 210mm; min-height: 297mm; background: white;
+            margin: 0 auto; padding: 8mm;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            display: flex; flex-direction: column; gap: 6mm;
+        }
+
+        .card-pair {
+            display: flex; gap: 8mm; align-items: flex-start;
+            padding: 10px; border: 2px dashed #bbb;
+            background: #f8f9fa; border-radius: 6px;
+        }
+
+        /* PVC card */
+        .pvc-box {
+            width: 85.6mm; height: 54mm;
+            border: 1px solid #333;
+            overflow: hidden; position: relative;
+            background: #fff; flex-shrink: 0;
+        }
+
+        .pvc-img {
+            position: absolute;
+        }
+
+        /* Controls */
+        .controls {
+            flex: 1; min-width: 0;
+            background: #fff; border: 1px solid #ddd;
+            border-radius: 6px; padding: 10px; font-size: 12px;
+        }
+        .ctrl-title {
+            font-weight: bold; background: #17a2b8; color: white;
+            padding: 4px 8px; border-radius: 4px; margin-bottom: 8px;
+            display: inline-block; font-size: 12px;
+        }
+        .slider-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .slider-row label { width: 90px; text-align: right; font-weight: bold; color: #444; white-space: nowrap; }
+        .slider-row input[type=range] { flex: 1; cursor: pointer; }
+        .slider-row .val { width: 42px; text-align: right; color: #007bff; font-weight: bold; font-size: 11px; }
+        .pair-actions { display: flex; flex-direction: column; gap: 6px; justify-content: flex-start; }
+        .pair-source { font-size: 10px; color: #888; margin-top: 4px; }
+
+        @media print {
+            body { padding: 0; background: white; }
+            .header, .no-print, .controls, .pair-actions { display: none !important; }
+            #a4-page { box-shadow: none; padding: 5mm; gap: 4mm; }
+            .card-pair { border: none; padding: 0; background: transparent; gap: 5mm; }
+            .pvc-box { border: 1px solid #888; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header no-print">
+    <h2>💳 প্রগতি টেলিকম — Ayushman Auto-Fit PVC Printer</h2>
+    <div class="sub">
+        PDF আপলোড করুন → সামনে ও পেছনের দিক দুটোই নিজে থেকে নিখুঁত fit হবে।<br>
+        <b>সাপোর্ট করে:</b> ১টা ২-পেজ PDF (পেজ ১=সামনে, পেজ ২=পেছনে) • একসাথে বাছাই করা ২টা ১-পেজ ফাইল (জোড়ায় জোড়ায়) • ১টা পেজে সামনে+পেছনে উপর-নিচ করে রাখা স্ক্যান।<br>
+        প্রয়োজনে slider দিয়ে fine-tune করে সরাসরি প্রিন্ট বা সেভ করুন।
+    </div>
+    
+    <!-- Updated Upload & Save Buttons Section -->
+    <div style="margin-top:10px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 5px;">
+        <input type="file" id="file-input" accept="application/pdf" style="display:none" multiple>
+        <button class="btn" id="upload-btn" onclick="document.getElementById('file-input').click()">+ PDF আপলোড করুন</button>
+        
+        <span style="border-left: 2px solid #ccc; height: 30px; margin: 0 10px;"></span>
+        
+        <select id="save-quality" class="quality-select">
+            <option value="1.0">HD Quality</option>
+            <option value="0.8" selected>Medium Quality</option>
+        </select>
+        <button class="btn btn-save" id="save-btn" onclick="saveToFolder()">🗂️ ফোল্ডারে সেভ করুন</button>
+        
+        <span style="border-left: 2px solid #ccc; height: 30px; margin: 0 10px;"></span>
+        
+        <button class="btn btn-print" onclick="window.print()">🖨️ Print করুন</button>
+    </div>
+    <div class="processing-box no-print" id="processing-box">⚙️ প্রসেস করা হচ্ছে... একটু অপেক্ষা করুন (বড় ফাইলে কয়েক সেকেন্ড লাগতে পারে)</div>
+</div>
+
+<div id="a4-page"></div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+const fileInput      = document.getElementById('file-input');
+const a4Page         = document.getElementById('a4-page');
+const processingBox  = document.getElementById('processing-box');
+const uploadBtn      = document.getElementById('upload-btn');
+const saveBtn        = document.getElementById('save-btn'); // Added save button reference
+
+// ডেটা সেভ রাখার জন্য গ্লোবাল অ্যারে
+let allCardsData = [];
+
+function showProcessing(on) {
+    processingBox.style.display = on ? 'block' : 'none';
+    uploadBtn.disabled = on;
+    saveBtn.disabled = on;
+}
+
+// ── Smart Detect bounds separating Top and Bottom Half (or whole page) ──
+function detectContentBounds(canvas, section = 'all', stride = 2) {
+    const ctx  = canvas.getContext('2d');
+    const w    = canvas.width;
+    const h    = canvas.height;
+    const data = ctx.getImageData(0, 0, w, h).data;
+
+    const isContent = (i) => data[i] < 240 || data[i+1] < 240 || data[i+2] < 240;
+
+    let minX = w, maxX = 0, minY = h, maxY = 0;
+
+    let startY = 0;
+    let endY = h;
+    if (section === 'top') { endY = Math.floor(h / 2); }
+    if (section === 'bottom') { startY = Math.floor(h / 2); }
+
+    for (let y = startY; y < endY; y += stride) {
+        for (let x = 0; x < w; x += stride) {
+            const i = (y * w + x) * 4;
+            if (isContent(i)) {
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+            }
+        }
+    }
+
+    if (maxX <= minX || maxY <= minY) {
+        return { x: 0, y: startY, w: w, h: endY - startY };
+    }
+
+    const PAD = stride * 2;
+    return {
+        x: Math.max(0, minX - PAD),
+        y: Math.max(0, minY - PAD),
+        w: Math.min(w - Math.max(0, minX - PAD), maxX - minX + PAD * 2),
+        h: Math.min(h - Math.max(0, minY - PAD), maxY - minY + PAD * 2),
+    };
+}
+
+// ── Calculate auto-fit CSS values ──
+function calcAutoFit(canvas, bounds) {
+    const contentWRatio = bounds.w / canvas.width;  
+    const contentHRatio = bounds.h / canvas.height;
+
+    const imgW = 100 / contentWRatio;   
+    const imgH = 100 / contentHRatio;
+
+    const imgLeft = -(bounds.x / canvas.width) * imgW;
+    const imgTop  = -(bounds.y / canvas.height) * imgH;
+
+    return {
+        w:    +imgW.toFixed(3),
+        h:    +imgH.toFixed(3),
+        left: +imgLeft.toFixed(3),
+        top:  +imgTop.toFixed(3),
+    };
+}
+
+// ── Load a PDF file and render a given page to canvas ──
+async function loadPdf(file) {
+    const buf = await file.arrayBuffer();
+    return await pdfjsLib.getDocument({ data: buf }).promise;
+}
+
+async function renderPage(pdf, pageNum, scale = 4.0) {
+    const page = await pdf.getPage(pageNum);
+    const vp   = page.getViewport({ scale });
+    const cv   = document.createElement('canvas');
+    cv.width   = vp.width;
+    cv.height  = vp.height;
+    const ctx  = cv.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    return cv;
+}
+
+function fitFromCanvas(canvas, section) {
+    const bounds = detectContentBounds(canvas, section);
+    return calcAutoFit(canvas, bounds);
+}
+
+// ── File input handler ──
+fileInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    showProcessing(true);
+    try {
+        let i = 0;
+        while (i < files.length) {
+            const file = files[i];
+            let pdf;
+            try {
+                pdf = await loadPdf(file);
+            } catch (err) {
+                console.error('Could not open PDF:', file.name, err);
+                alert(`❌ "${file.name}" খোলা যায়নি — এটা কি বৈধ PDF ফাইল?`);
+                i += 1;
+                continue;
+            }
+
+            // ক্লিন ফাইলের নাম (সেভ করার সুবিধার জন্য)
+            const cleanFileName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-z0-9A-Z]/gi, '_');
+
+            if (pdf.numPages >= 2) {
+                const frontCanvas = await renderPage(pdf, 1);
+                const backCanvas  = await renderPage(pdf, 2);
+                const fitFront = fitFromCanvas(frontCanvas, 'all');
+                const fitBack  = fitFromCanvas(backCanvas, 'all');
+                createCardPair(
+                    frontCanvas.toDataURL('image/jpeg', 0.98), fitFront,
+                    backCanvas.toDataURL('image/jpeg', 0.98), fitBack,
+                    `${file.name} (পেজ ১+২)`, cleanFileName
+                );
+                i += 1;
+
+            } else if (files.length - i >= 2) {
+                const file2 = files[i + 1];
+                let pdf2;
+                try {
+                    pdf2 = await loadPdf(file2);
+                } catch (err) {
+                    console.error('Could not open PDF:', file2.name, err);
+                    alert(`❌ "${file2.name}" খোলা যায়নি — এটা কি বৈধ PDF ফাইল? এই ফাইলটা বাদ দেওয়া হলো।`);
+                    const canvas = await renderPage(pdf, 1);
+                    const fitFront = fitFromCanvas(canvas, 'top');
+                    const fitBack  = fitFromCanvas(canvas, 'bottom');
+                    const src = canvas.toDataURL('image/jpeg', 0.98);
+                    createCardPair(src, fitFront, src, fitBack, file.name, cleanFileName);
+                    i += 1;
+                    continue;
+                }
+                const frontCanvas = await renderPage(pdf, 1);
+                const backCanvas  = await renderPage(pdf2, 1);
+                const fitFront = fitFromCanvas(frontCanvas, 'all');
+                const fitBack  = fitFromCanvas(backCanvas, 'all');
+                createCardPair(
+                    frontCanvas.toDataURL('image/jpeg', 0.98), fitFront,
+                    backCanvas.toDataURL('image/jpeg', 0.98), fitBack,
+                    `${file.name} + ${file2.name}`, cleanFileName
+                );
+                i += 2;
+
+            } else {
+                const canvas = await renderPage(pdf, 1);
+                const fitFront = fitFromCanvas(canvas, 'top');
+                const fitBack  = fitFromCanvas(canvas, 'bottom');
+                const src = canvas.toDataURL('image/jpeg', 0.98);
+                createCardPair(src, fitFront, src, fitBack, `${file.name} (উপর/নিচ ভাগ করা)`, cleanFileName);
+                i += 1;
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        alert('❌ প্রসেস করতে সমস্যা হয়েছে: ' + (err && err.message ? err.message : err));
+    } finally {
+        showProcessing(false);
+        fileInput.value = '';
+    }
+});
+
+// ── Create a front+back card pair ──
+let pairCounter = 0;
+function createCardPair(frontSrc, fitFront, backSrc, fitBack, label, fileName) {
+    const id = ++pairCounter;
+    
+    // সেভ করার জন্য ডেটা সংরক্ষণ
+    if (!fileName) fileName = "Card_" + id;
+    allCardsData.push({ id, frontSrc, backSrc, fileName });
+
+    const pair = document.createElement('div');
+    pair.className = 'card-pair';
+    pair.id = 'pair-' + id;
+
+    const frontId = `img-${id}-front`;
+    const backId  = `img-${id}-back`;
+
+    const frontEl = makeCardBox(frontId, frontSrc, fitFront.w, fitFront.h, fitFront.left, fitFront.top, 'সামনে (Front)', fitFront);
+    const backEl  = makeCardBox(backId,  backSrc,  fitBack.w,  fitBack.h,  fitBack.left,  fitBack.top,  'পেছনে (Back)',  fitBack);
+
+    const actions = document.createElement('div');
+    actions.className = 'pair-actions no-print';
+    actions.innerHTML = `
+        <div style="font-size:11px;color:#666;max-width:80px;text-align:center;word-break:break-all">${label}</div>
+        <button class="btn btn-del" onclick="deletePair(${id})" style="font-size:12px;padding:6px 10px;color:white;border:none;border-radius:4px;cursor:pointer;">❌ মুছুন</button>
+    `;
+
+    pair.appendChild(frontEl);
+    pair.appendChild(backEl);
+    pair.appendChild(actions);
+    a4Page.appendChild(pair);
+}
+
+// ── Build a single PVC box with sliders ──
+function makeCardBox(imgId, imgSrc, w, h, left, top, title, originalFit) {
+    const wrap = document.createElement('div');
+    wrap.style.display = 'flex'; wrap.style.flexDirection = 'column'; wrap.style.alignItems = 'flex-start';
+
+    const box = document.createElement('div');
+    box.className = 'pvc-box';
+
+    const img = document.createElement('img');
+    img.id        = imgId;
+    img.src       = imgSrc;
+    img.className = 'pvc-img';
+    applyFit(img, w, h, left, top);
+    box.appendChild(img);
+
+    const ctrl = document.createElement('div');
+    ctrl.className = 'controls no-print';
+
+    const sliders = [
+        { label: 'চওড়া ↔',   key: 'w',    min: 50,   max: 800,  step: 0.1, val: w    },
+        { label: 'লম্বা ↕',   key: 'h',    min: 50,   max: 1000, step: 0.1, val: h    },
+        { label: 'বামে→ডানে', key: 'left', min: -700, max: 100,  step: 0.1, val: left },
+        { label: 'উপরে→নিচে', key: 'top',  min: -900, max: 100,  step: 0.1, val: top  },
+    ];
+
+    const state = { w, h, left, top };
+
+    ctrl.innerHTML = `<div class="ctrl-title">${title}</div>`;
+
+    sliders.forEach(s => {
+        const row = document.createElement('div');
+        row.className = 'slider-row';
+
+        const lbl   = document.createElement('label'); lbl.textContent = s.label;
+        const range = document.createElement('input'); range.type = 'range';
+        const clampedVal = Math.min(s.max, Math.max(s.min, s.val));
+        range.min   = s.min; range.max = s.max; range.step = s.step; range.value = clampedVal;
+        const valSpan = document.createElement('span'); valSpan.className = 'val';
+        valSpan.textContent = s.val.toFixed(1) + '%';
+
+        range.addEventListener('input', () => {
+            state[s.key]      = parseFloat(range.value);
+            valSpan.textContent = state[s.key].toFixed(1) + '%';
+            applyFit(img, state.w, state.h, state.left, state.top);
+        });
+
+        row.appendChild(lbl); row.appendChild(range); row.appendChild(valSpan);
+        ctrl.appendChild(row);
+    });
+
+    const resetBtn = document.createElement('button');
+    resetBtn.textContent = '🔄 Auto-fit Reset';
+    resetBtn.style.cssText = 'margin-top:6px;font-size:11px;padding:4px 10px;background:#6c757d;color:white;border:none;border-radius:4px;cursor:pointer;width:100%;';
+    resetBtn.onclick = () => {
+        state.w = originalFit.w; state.h = originalFit.h; state.left = originalFit.left; state.top = originalFit.top;
+        ctrl.querySelectorAll('input[type=range]').forEach((r, i) => {
+            const keys = ['w','h','left','top'];
+            const clamped = Math.min(parseFloat(r.max), Math.max(parseFloat(r.min), state[keys[i]]));
+            r.value = clamped;
+            r.nextSibling.textContent = state[keys[i]].toFixed(1) + '%';
+        });
+        applyFit(img, originalFit.w, originalFit.h, originalFit.left, originalFit.top);
+    };
+    ctrl.appendChild(resetBtn);
+
+    wrap.appendChild(box);
+    wrap.appendChild(ctrl);
+    return wrap;
+}
+
+function applyFit(img, w, h, left, top) {
+    img.style.width  = w     + '%';
+    img.style.height = h     + '%';
+    img.style.left   = left + '%';
+    img.style.top    = top  + '%';
+}
+
+function deletePair(id) {
+    document.getElementById('pair-' + id).remove();
+    allCardsData = allCardsData.filter(card => card.id !== id);
+}
+
+// ── Get the current values from the image DOM (Live Adjustments) ──
+function getFitFromDOM(imgId) {
+    const img = document.getElementById(imgId);
+    return {
+        w: parseFloat(img.style.width),
+        h: parseFloat(img.style.height),
+        left: parseFloat(img.style.left),
+        top: parseFloat(img.style.top)
+    };
+}
+
+// ── 🗂️ Direct Folder Save API or ZIP Fallback ──
+async function saveToFolder() {
+    if (allCardsData.length === 0) {
+        alert("সেভ করার মতো কোনো কার্ড নেই! আগে PDF আপলোড করুন।");
+        return;
+    }
+    
+    const quality = parseFloat(document.getElementById('save-quality').value);
+    const pBox = document.getElementById('processing-box');
+    
+    try {
+        if (window.showDirectoryPicker) {
+            const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            
+            showProcessing(true);
+            pBox.innerHTML = "💾 কার্ডগুলো ফোল্ডারে সেভ হচ্ছে... দয়া করে অপেক্ষা করুন";
+            
+            for (let i = 0; i < allCardsData.length; i++) {
+                const card = allCardsData[i];
+                const liveFitFront = getFitFromDOM(`img-${card.id}-front`);
+                const liveFitBack = getFitFromDOM(`img-${card.id}-back`);
+                
+                const frontBlob = await getCardBlob(card.frontSrc, liveFitFront, quality);
+                const frontFile = await dirHandle.getFileHandle(`${card.fileName}_Front.jpg`, { create: true });
+                const frontWritable = await frontFile.createWritable();
+                await frontWritable.write(frontBlob);
+                await frontWritable.close();
+                
+                const backBlob = await getCardBlob(card.backSrc, liveFitBack, quality);
+                const backFile = await dirHandle.getFileHandle(`${card.fileName}_Back.jpg`, { create: true });
+                const backWritable = await backFile.createWritable();
+                await backWritable.write(backBlob);
+                await backWritable.close();
+            }
+            
+            pBox.innerHTML = "✅ সমস্ত কার্ড সফলভাবে ফোল্ডারে সেভ হয়েছে!";
+            setTimeout(() => { showProcessing(false); }, 3000);
+            return;
+        }
+    } catch (err) {
+        if (err.name === 'AbortError') return; 
+        console.log("Directory Picker error, falling back to ZIP.");
+    }
+    
+    // Fallback: JSZip
+    showProcessing(true);
+    pBox.innerHTML = "🗂️ ZIP ফাইল তৈরি হচ্ছে... দয়া করে অপেক্ষা করুন";
+    const zip = new JSZip(); 
+    
+    for (let i = 0; i < allCardsData.length; i++) {
+        const card = allCardsData[i];
+        const liveFitFront = getFitFromDOM(`img-${card.id}-front`);
+        const liveFitBack = getFitFromDOM(`img-${card.id}-back`);
+        
+        const frontBlob = await getCardBlob(card.frontSrc, liveFitFront, quality);
+        zip.file(`${card.fileName}_Front.jpg`, frontBlob);
+        
+        const backBlob = await getCardBlob(card.backSrc, liveFitBack, quality);
+        zip.file(`${card.fileName}_Back.jpg`, backBlob);
+    }
+    
+    zip.generateAsync({type:"blob"}).then(function(content) {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        link.download = "Pragati_Telecom_Cards.zip";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        pBox.innerHTML = "✅ ZIP ফাইল ডাউনলোড হয়েছে!";
+        setTimeout(() => { showProcessing(false); }, 3000);
+    });
+}
+
+function getCardBlob(src, fit, quality) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const cw = 1011; const ch = 638; 
+            canvas.width = cw; canvas.height = ch;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, cw, ch);
+            
+            const drawW = cw * (fit.w / 100);
+            const drawH = ch * (fit.h / 100);
+            const drawX = cw * (fit.left / 100);
+            const drawY = ch * (fit.top / 100);
+            
+            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+            
+            canvas.toBlob((blob) => {
+                resolve(blob);
+            }, 'image/jpeg', quality);
+        };
+        img.src = src;
+    });
+}
+</script>
+</body>
+</html>
