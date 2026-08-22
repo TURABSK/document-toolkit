@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>প্রগতি টেলিকম — Pro Dashboard</title>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
     <style>
         :root {
             --glass-bg: rgba(255, 255, 255, 0.08);
@@ -15,225 +13,89 @@
             --text-main: #ffffff;
             --text-muted: rgba(255, 255, 255, 0.7);
         }
-
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Inter', 'Noto Sans Bengali', sans-serif;
             background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364);
             background-size: 300% 300%;
             animation: gradientBG 15s ease infinite;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
             color: var(--text-main);
         }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Compact Header */
-        header {
-            margin-top: 40px;
-            text-align: center;
-            padding: 0 20px;
-            z-index: 10;
-        }
-
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        header { margin-top: 40px; text-align: center; padding: 0 20px; z-index: 10; }
         .badge {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            border: 1px solid var(--glass-border);
+            display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 4px 12px;
+            border-radius: 12px; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase;
+            margin-bottom: 10px; border: 1px solid var(--glass-border);
         }
-
-        header h1 {
-            font-size: 2.2rem;
-            margin: 0;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-        }
-
-        header p {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            margin-top: 8px;
-            max-width: 550px;
-            line-height: 1.5;
-        }
-
-        /* Dense Grid Layout */
+        header h1 { font-size: 2.2rem; margin: 0; font-weight: 600; letter-spacing: -0.5px; }
+        header p { font-size: 0.95rem; color: var(--text-muted); margin-top: 8px; max-width: 550px; line-height: 1.5; }
         .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            padding: 30px 20px;
-            max-width: 1000px;
-            width: 100%;
-            box-sizing: border-box;
-            z-index: 10;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;
+            padding: 30px 20px; max-width: 1000px; width: 100%; box-sizing: border-box; z-index: 10;
         }
-
-        /* Professional Card Style */
         .card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s ease;
-            position: relative;
+            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; text-decoration: none;
+            color: inherit; display: flex; flex-direction: column; transition: all 0.3s ease; position: relative;
         }
-
-        .card:hover {
-            transform: translateY(-5px);
-            background: var(--glass-hover);
-            border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Card Header (Icon + Title side by side) */
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .icon {
-            font-size: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            width: 40px; 
-            height: 40px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.15);
-            flex-shrink: 0;
-        }
-
-        .card h2 {
-            margin: 0;
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-
-        .card p {
-            margin: 0;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-            flex-grow: 1;
-        }
-
-        /* Compact Button */
-        .go-btn {
-            margin-top: 18px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            border: 1px solid rgba(255,255,255,0.1);
-            display: inline-flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: 0.3s;
-            width: max-content;
-            gap: 8px;
-        }
-
-        .card:hover .go-btn {
-            background: #fff;
-            color: #0f2027;
-        }
-
-        footer {
-            margin-top: auto;
-            padding: 20px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        @media (max-width: 768px) {
-            header h1 { font-size: 1.8rem; }
-            .dashboard { padding: 20px; gap: 15px; }
-        }
+        .card:hover { transform: translateY(-5px); background: var(--glass-hover); border-color: rgba(255, 255, 255, 0.3); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+        .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .icon { font-size: 20px; background: rgba(255, 255, 255, 0.1); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); flex-shrink: 0; }
+        .card h2 { margin: 0; font-size: 1.1rem; font-weight: 500; }
+        .card p { margin: 0; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; flex-grow: 1; }
+        .go-btn { margin-top: 18px; background: rgba(255, 255, 255, 0.05); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.1); display: inline-flex; justify-content: space-between; align-items: center; transition: 0.3s; width: max-content; gap: 8px; }
+        .card:hover .go-btn { background: #fff; color: #0f2027; }
+        footer { margin-top: auto; padding: 20px; font-size: 0.8rem; color: var(--text-muted); }
+        @media (max-width: 768px) { header h1 { font-size: 1.8rem; } .dashboard { padding: 20px; gap: 15px; } }
     </style>
 </head>
 <body>
-
     <header>
         <div class="badge">প্রগতি টেলিকম</div>
         <h1>Document Toolkit Pro</h1>
         <p>অফিসের দৈনন্দিন কাজের জন্য সিকিউর এবং ফাস্ট ব্রাউজার-ভিত্তিক টুলস।</p>
     </header>
-
     <main class="dashboard">
-
+        
         <a class="card" href="tools/searchable-pdf-maker/">
-            <div class="card-header">
-                <div class="icon">🔍</div>
-                <h2>সার্চেবল PDF মেকার</h2>
-            </div>
+            <div class="card-header"><div class="icon">🔍</div><h2>Pro Searchable PDF</h2></div>
             <p>স্ক্যান করা PDF বা ছবিতে টেক্সট লেয়ার বসিয়ে Ctrl+F দিয়ে সার্চযোগ্য করুন।</p>
             <div class="go-btn">টুল ওপেন করুন <span>→</span></div>
         </a>
-
-        <a class="card" href="tools/pdf-editor-manual/">
-            <div class="card-header">
-                <div class="icon">✍️</div>
-                <h2>Pro Live PDF Editor</h2>
-            </div>
-            <p>PDF-এর উপর টেক্সট বসানো, অংশ হাইড করা, বা সিগনেচার যোগ করার টুল।</p>
-            <div class="go-btn">টুল ওপেন করুন <span>→</span></div>
-        </a>
-
+        
         <a class="card" href="tools/pdf-editor-ocr/">
-            <div class="card-header">
-                <div class="icon">🧠</div>
-                <h2>Smart Visual PDF Editor</h2>
-            </div>
+            <div class="card-header"><div class="icon">🧠</div><h2>Smart Visual Editor</h2></div>
             <p>স্ক্যান করা PDF বা ছবি সরাসরি ক্লিক করে এডিট করার স্মার্ট এডিটর।</p>
             <div class="go-btn">টুল ওপেন করুন <span>→</span></div>
         </a>
-
+        
         <a class="card" href="tools/pdf-compressor/">
-            <div class="card-header">
-                <div class="icon">🗜️</div>
-                <h2>Custom PDF Compressor</h2>
-            </div>
+            <div class="card-header"><div class="icon">🗜️</div><h2>Custom PDF Compressor</h2></div>
             <p>টার্গেট KB সাইজ সিলেক্ট করে PDF-এর কোয়ালিটি ও রেজোলিউশন কমান।</p>
             <div class="go-btn">টুল ওপেন করুন <span>→</span></div>
         </a>
 
+        <a class="card" href="tools/drag-drop-pdf/">
+            <div class="card-header"><div class="icon">📑</div><h2>Drag & Drop PDF Maker</h2></div>
+            <p>ছবি বা PDF আপলোড করে ড্র্যাগ-অ্যান্ড-ড্রপ করে সাজান এবং সেভ করুন।</p>
+            <div class="go-btn">টুল ওপেন করুন <span>→</span></div>
+        </a>
+
+        <a class="card" href="tools/both-side-printer/">
+            <div class="card-header"><div class="icon">🖨️</div><h2>Both Side Printer</h2></div>
+            <p>ডুপ্লেক্স প্রিন্টিংয়ের জন্য PDF-এর পেজগুলো স্বয়ংক্রিয়ভাবে রিঅ্যারেঞ্জ করুন।</p>
+            <div class="go-btn">টুল ওপেন করুন <span>→</span></div>
+        </a>
+
         <a class="card" href="tools/pvc-card-printer/">
-            <div class="card-header">
-                <div class="icon">💳</div>
-                <h2>Super_Ayushman_Printer</h2>
-            </div>
-            <p>আয়ুষ্মান, আধার বা রেশন কার্ড পারফেক্ট PVC সাইজে ক্রপ করে সেভ বা প্রিন্ট করুন।</p>
+            <div class="card-header"><div class="icon">💳</div><h2>Smart PVC Printer</h2></div>
+            <p>আয়ুষ্মান, আধার বা রেশন কার্ড পারফেক্ট PVC সাইজে ক্রপ করে প্রিন্ট করুন।</p>
             <div class="go-btn">টুল ওপেন করুন <span>→</span></div>
         </a>
 
     </main>
-
-    <footer>
-        © ২০২৬ প্রগতি টেলিকম • লোকাল প্রসেসিং
-    </footer>
-
+    <footer>© ২০২৬ প্রগতি টেলিকম • লোকাল প্রসেসিং</footer>
 </body>
 </html>
