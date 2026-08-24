@@ -1,525 +1,233 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Searchable PDF Maker</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-    
+    <title>AI Smart Scanner & PDF Maker - Pragati Telecom</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- html2pdf Library for generating PDF with Bengali font support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* Modern Font and Premium Background */
-        body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
-            margin: 0; 
-            padding: 0; 
-            color: #2d3748; 
-            display: flex; 
-            flex-direction: column; 
-            min-height: 100vh; 
-        }
-        
-        /* Glassmorphism Navbar */
-        .navbar { 
-            background: rgba(255, 255, 255, 0.8); 
-            backdrop-filter: blur(10px);
-            padding: 15px 30px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            border-bottom: 1px solid rgba(255,255,255,0.5);
-        }
-        .navbar h2 { 
-            margin: 0; 
-            font-size: 24px; 
-            font-weight: 800;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
+        :root {
+            --primary: #059669;
+            --primary-hover: #047857;
+            --bg-color: #f0fdf4;
+            --glass-bg: #ffffff;
+            --text-main: #1e293b;
         }
 
-        /* Main Container */
-        .main-content { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 40px 20px; 
-            width: 100%; 
-            box-sizing: border-box; 
-        }
-        
-        /* Page Title */
-        .page-title { text-align: center; margin-bottom: 35px; }
-        .page-title h1 { font-size: 32px; margin: 0 0 10px 0; color: #1a202c; font-weight: 800; }
-        .page-title p { font-size: 16px; color: #4a5568; margin: 0; }
-
-        /* Glass Cards */
-        .glass-card {
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.08), 0 5px 15px rgba(0,0,0,0.03);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(10px);
+        body {
+            font-family: 'Inter', 'Noto Sans Bengali', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        /* Stage 1: Upload Zone */
-        #upload-stage { width: 100%; max-width: 700px; padding: 40px; text-align: center; }
-        .upload-btn-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
-        
-        .btn-large { 
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white; 
-            border: none; 
-            padding: 25px 40px; 
-            font-size: 22px; 
-            font-weight: bold; 
-            border-radius: 15px; 
-            cursor: pointer; 
-            transition: all 0.3s; 
-            width: 100%; 
-            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.3); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 15px; 
+        .container {
+            background: var(--glass-bg);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
         }
-        .btn-large:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(79, 172, 254, 0.4); }
-        .upload-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; width: 100%; }
-        .drop-zone-text { margin-top: 25px; color: #718096; font-size: 15px; font-weight: 500; }
 
-        /* Stage 2: Workspace (Grid + Sidebar) */
-        #workspace-stage { display: none; width: 100%; max-width: 1200px; gap: 30px; align-items: flex-start; justify-content: center; }
-        
-        .grid-container { flex: 1; padding: 25px; min-height: 400px; }
-        
-        /* Grid Item Styles */
-        #file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
-        .grid-item { 
-            background: white; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.06); 
-            padding: 12px; 
-            position: relative; 
-            cursor: grab; 
-            transition: all 0.2s; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: space-between; 
-            aspect-ratio: 1 / 1.2; 
-            border: 1px solid #e2e8f0;
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px dashed #e2e8f0;
+            padding-bottom: 15px;
         }
-        .grid-item:active { cursor: grabbing; }
-        .grid-item:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: #cbd5e0; }
-        .item-preview { width: 100%; height: 75%; background: #f7fafc; border-radius: 8px; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #edf2f7; }
-        .item-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .item-preview .pdf-icon { font-size: 40px; }
-        .item-number { position: absolute; top: -10px; left: -10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 13px; font-weight: bold; box-shadow: 0 4px 8px rgba(118, 75, 162, 0.3); }
-        .btn-remove { position: absolute; top: -10px; right: -10px; background: white; color: #e53e3e; border: 1px solid #fc8181; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; cursor: pointer; box-shadow: 0 4px 8px rgba(229, 62, 62, 0.2); transition: 0.2s; }
-        .btn-remove:hover { background: #e53e3e; color: white; border-color: #e53e3e; transform: scale(1.1); }
-        .item-name { font-size: 12px; color: #4a5568; text-align: center; margin-top: 12px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
 
-        /* Sidebar Settings */
-        .sidebar { width: 340px; position: sticky; top: 20px; overflow: hidden; }
-        .sidebar-header { background: #fdfbfb; padding: 20px; border-bottom: 1px solid #edf2f7; font-weight: bold; font-size: 18px; display: flex; align-items: center; gap: 10px; border-top-left-radius: 20px; border-top-right-radius: 20px; }
-        .sidebar-content { padding: 25px; }
-        
-        .setting-group { margin-bottom: 30px; }
-        .setting-title { font-size: 15px; font-weight: bold; color: #2d3748; margin-bottom: 15px; display: block; }
-        
-        /* Modern Slider */
-        .slider-wrap { background: #f7fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .slider-val { color: #d69e2e; font-size: 24px; font-weight: 800; margin-bottom: 15px; display: block; text-align: center; }
-        
-        input[type="range"] { width: 100%; cursor: pointer; height: 8px; background: #cbd5e0; border-radius: 5px; outline: none; -webkit-appearance: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #d69e2e; cursor: pointer; box-shadow: 0 2px 6px rgba(214, 158, 46, 0.4); transition: 0.2s; }
-        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
-        
-        /* Modern iOS style Toggle Switch */
-        .toggle-wrapper { display: flex; align-items: flex-start; gap: 15px; background: #f7fafc; padding: 18px 15px; border-radius: 12px; border: 1px solid #e2e8f0; cursor: pointer; transition: 0.3s; }
-        .toggle-wrapper:hover { border-color: #cbd5e0; background: #edf2f7; }
-        
-        .switch { position: relative; display: inline-block; width: 46px; height: 24px; flex-shrink: 0; margin-top: 2px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider-round { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e0; transition: .4s; border-radius: 24px; }
-        .slider-round:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        input:checked + .slider-round { background-color: #48bb78; }
-        input:checked + .slider-round:before { transform: translateX(22px); }
+        .header h1 { margin: 0; color: var(--primary); font-size: 1.8rem; }
+        .header p { margin: 5px 0 0 0; font-size: 0.9rem; color: #64748b; }
 
-        .toggle-text { font-size: 15px; color: #2d3748; font-weight: bold; }
-        .toggle-subtext { font-size: 12px; color: #718096; display: block; margin-top: 5px; line-height: 1.4; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; }
 
-        /* Action Footer */
-        .action-footer { padding: 25px; border-top: 1px solid #edf2f7; background: white; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
-        .btn-process { background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%); color: white; border: none; padding: 18px; width: 100%; font-size: 18px; font-weight: bold; border-radius: 12px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(242, 153, 74, 0.3); text-transform: uppercase; letter-spacing: 0.5px; }
-        .btn-process:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(242, 153, 74, 0.4); }
-
-        /* Stages 3 & 4: Loading and Success */
-        .center-box { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 600px; padding: 50px; text-align: center; }
-        
-        /* Modern Progress */
-        .spinner { width: 50px; height: 50px; border: 5px solid #edf2f7; border-top: 5px solid #4facfe; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 25px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .progress-container { width: 100%; background-color: #edf2f7; border-radius: 10px; height: 12px; margin: 25px 0; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
-        .progress-bar { height: 100%; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); width: 0%; transition: width 0.3s ease; border-radius: 10px; }
-        
-        .success-icon { font-size: 80px; color: #48bb78; margin-bottom: 20px; text-shadow: 0 4px 10px rgba(72, 187, 120, 0.3); }
-        .btn-download { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; text-decoration: none; padding: 18px 40px; font-size: 18px; font-weight: bold; border-radius: 12px; display: inline-flex; align-items: center; gap: 10px; margin-top: 25px; transition: 0.3s; box-shadow: 0 8px 20px rgba(17, 153, 142, 0.3); }
-        .btn-download:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(17, 153, 142, 0.4); }
-        .btn-restart { margin-top: 25px; color: #718096; text-decoration: none; font-size: 15px; cursor: pointer; display: inline-block; font-weight: 500; transition: 0.2s; }
-        .btn-restart:hover { color: #4facfe; }
-
-        @media (max-width: 850px) {
-            #workspace-stage { flex-direction: column; align-items: center; }
-            .sidebar { width: 100%; position: static; }
+        input[type="password"], input[type="file"] {
+            width: 100%; padding: 12px; border: 1px solid #cbd5e1;
+            border-radius: 8px; font-size: 1rem; box-sizing: border-box;
         }
+
+        button {
+            background-color: var(--primary); color: white; border: none;
+            padding: 12px 24px; border-radius: 8px; font-size: 1rem;
+            font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%;
+            margin-bottom: 10px;
+        }
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        
+        .btn-pdf { background-color: #dc2626; }
+        .btn-pdf:hover { background-color: #b91c1c; }
+
+        .result-box { display: none; margin-top: 25px; }
+
+        .editor-area {
+            background: #fff; min-height: 250px; border: 1px solid #cbd5e1;
+            border-radius: 8px; padding: 20px; font-size: 1.05rem;
+            line-height: 1.6; white-space: pre-wrap;
+        }
+
+        .file-status {
+            font-size: 0.9rem; color: #2563eb; margin-top: 10px; font-weight: 600; display: none;
+        }
+
+        .loader { display: none; text-align: center; margin: 20px 0; color: var(--primary); font-weight: 600; }
     </style>
 </head>
 <body>
 
-    <div class="navbar">
-        <h2>🔍 Pro Searchable PDF Maker</h2>
-    </div>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 AI PDF & Image Scanner</h1>
+            <p>যেকোনো ছবি (JPG/PNG) বা PDF ফাইল আপলোড করে ভিতরের টেক্সট বের করুন এবং নতুন PDF তৈরি করুন।</p>
+        </div>
 
-    <div class="main-content">
+        <div class="form-group">
+            <label>🔑 Gemini API Key:</label>
+            <input type="password" id="apiKey" placeholder="আপনার API Key এখানে পেস্ট করুন...">
+        </div>
+
+        <div class="form-group">
+            <!-- এখানে PDF সাপোর্ট যুক্ত করা হয়েছে -->
+            <label>📄 স্ক্যান করা ছবি বা PDF আপলোড করুন:</label>
+            <input type="file" id="fileInput" accept="image/png, image/jpeg, application/pdf">
+            <div id="fileStatus" class="file-status">✅ ফাইল লোড হয়েছে!</div>
+        </div>
+
+        <button id="generateBtn" onclick="extractText()">✨ ফাইল থেকে টেক্সট বের করুন</button>
         
-        <div class="page-title" id="pageTitle">
-            <h1>Upload Files</h1>
-            <p>Create, organize, and compress PDFs with intelligent OCR support.</p>
-        </div>
+        <div class="loader" id="loader">Gemini আপনার ফাইলটি পড়ছে... একটু অপেক্ষা করুন ⏳</div>
 
-        <div id="upload-stage" class="glass-card">
-            <div class="upload-btn-wrapper">
-                <button class="btn-large">
-                    📂 Select Files (Images / PDF)
-                </button>
-                <input type="file" id="fileInput" accept="application/pdf, image/png, image/jpeg, image/jpg" multiple>
-            </div>
-            <div class="drop-zone-text">or drop your files directly here</div>
-        </div>
-
-        <div id="workspace-stage">
-            <div class="grid-container glass-card">
-                <div style="font-weight: bold; color: #4a5568; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #edf2f7;">
-                    🖱️ Drag and drop items to reorder pages
-                </div>
-                <div id="file-grid"></div>
-                
-                <div class="upload-btn-wrapper" style="margin-top: 35px; text-align: center;">
-                    <button style="background: #f7fafc; color: #4a5568; border: 2px dashed #cbd5e0; padding: 15px 35px; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 15px;" onmouseover="this.style.borderColor='#4facfe'; this.style.color='#4facfe'" onmouseout="this.style.borderColor='#cbd5e0'; this.style.color='#4a5568'">
-                        + Add More Files
-                    </button>
-                    <input type="file" id="addMoreInput" accept="application/pdf, image/png, image/jpeg, image/jpg" multiple>
-                </div>
-            </div>
-
-            <div class="sidebar glass-card">
-                <div class="sidebar-header">
-                    ⚙️ Processing Options
-                </div>
-                <div class="sidebar-content">
-                    
-                    <div class="setting-group">
-                        <span class="setting-title">🎯 Target Size (Compression)</span>
-                        <div class="slider-wrap">
-                            <span class="slider-val"><span id="sliderValueText">250</span> KB</span>
-                            <input type="range" id="targetSizeSlider" min="100" max="2000" step="10" value="250">
-                            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #a0aec0; margin-top: 8px; font-weight: bold;">
-                                <span>High Comp</span>
-                                <span>High Quality</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="setting-group">
-                        <label class="toggle-wrapper">
-                            <div class="switch">
-                                <input type="checkbox" id="ocrCheckbox">
-                                <span class="slider-round"></span>
-                            </div>
-                            <div>
-                                <div class="toggle-text">Make PDF Searchable (OCR)</div>
-                                <div class="toggle-subtext">Extracts hidden text from images so you can copy or search ID numbers.</div>
-                            </div>
-                        </label>
-                    </div>
-
-                </div>
-                <div class="action-footer">
-                    <button class="btn-process" id="startProcessBtn">
-                        ⚙️ Generate PDF
-                    </button>
-                </div>
+        <div class="result-box" id="resultBox">
+            <label>📝 এক্সট্রাক্ট করা টেক্সট (১০০% নির্ভুল):</label>
+            <div id="outputContent" class="editor-area" contenteditable="true"></div>
+            
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button onclick="copyText()" style="background-color: #3b82f6; flex: 1;">📋 কপি করুন</button>
+                <button onclick="downloadPDF()" class="btn-pdf" style="flex: 1;">🖨️ PDF হিসেবে সেভ করুন</button>
             </div>
         </div>
-
-        <div id="process-stage" class="center-box glass-card">
-            <div class="spinner"></div>
-            <h2 style="color: #1a202c; margin-bottom: 5px;">Processing...</h2>
-            <p id="processStatusText" style="color: #718096; font-weight: 500;">Please do not close this window.</p>
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-        </div>
-
-        <div id="success-stage" class="center-box glass-card">
-            <div class="success-icon">✅</div>
-            <h1 style="color: #1a202c; margin: 0 0 10px 0;">Success!</h1>
-            <p id="finalStatusText" style="color: #4a5568; font-size: 16px;">Your file is optimized and ready.</p>
-            <a href="#" id="downloadBtn" class="btn-download">📥 Download PDF</a>
-            <a href="javascript:location.reload()" class="btn-restart">🔄 Process New Files</a>
-        </div>
-
     </div>
 
     <script>
-        const pdfjs = window['pdfjs-dist/build/pdf'];
-        pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        let base64Data = "";
+        let fileMimeType = "";
 
-        const fileInput = document.getElementById('fileInput');
-        const addMoreInput = document.getElementById('addMoreInput');
-        const fileGrid = document.getElementById('file-grid');
-        const uploadStage = document.getElementById('upload-stage');
-        const workspaceStage = document.getElementById('workspace-stage');
-        const processStage = document.getElementById('process-stage');
-        const successStage = document.getElementById('success-stage');
-        const pageTitle = document.getElementById('pageTitle');
-        const targetSizeSlider = document.getElementById('targetSizeSlider');
-        const sliderValueText = document.getElementById('sliderValueText');
-        const ocrCheckbox = document.getElementById('ocrCheckbox');
-        const startProcessBtn = document.getElementById('startProcessBtn');
-        const processStatusText = document.getElementById('processStatusText');
-        const progressBar = document.getElementById('progressBar');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const finalStatusText = document.getElementById('finalStatusText');
-
-        let fileArray = []; 
-        let totalOriginalSizeKB = 0;
-
-        targetSizeSlider.addEventListener('input', function() {
-            sliderValueText.textContent = this.value;
-        });
-
-        fileInput.addEventListener('change', handleFiles);
-        addMoreInput.addEventListener('change', handleFiles);
-
-        new Sortable(fileGrid, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            onEnd: function (evt) {
-                const items = fileGrid.querySelectorAll('.grid-item');
-                let newFileArray = [];
-                items.forEach((item, index) => {
-                    const id = item.getAttribute('data-id');
-                    const found = fileArray.find(f => f.id === id);
-                    if (found) newFileArray.push(found);
-                    item.querySelector('.item-number').innerText = index + 1;
-                });
-                fileArray = newFileArray;
+        // ফাইল সিলেক্ট করার পর সেটিকে Base64 এ কনভার্ট করা
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const statusDiv = document.getElementById('fileStatus');
+            
+            if (file) {
+                fileMimeType = file.type;
+                const reader = new FileReader();
+                reader.onload = function(readerEvent) {
+                    // Base64 স্ট্রিং থেকে 'data:image/jpeg;base64,' অংশটুকু বাদ দেওয়া
+                    const result = readerEvent.target.result;
+                    base64Data = result.split(',')[1];
+                    
+                    statusDiv.style.display = 'block';
+                    statusDiv.innerText = `✅ ${file.name} রেডি হয়েছে!`;
+                };
+                reader.readAsDataURL(file); // PDF বা ছবি সবকিছুর জন্যই কাজ করবে
             }
         });
 
-        async function handleFiles(e) {
-            const files = e.target.files;
-            if (files.length === 0) return;
+        async function extractText() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const fileInput = document.getElementById('fileInput');
+            const resultBox = document.getElementById('resultBox');
+            const outputContent = document.getElementById('outputContent');
+            const loader = document.getElementById('loader');
+            const generateBtn = document.getElementById('generateBtn');
 
-            uploadStage.style.display = 'none';
-            pageTitle.style.display = 'none';
-            workspaceStage.style.display = 'flex';
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                totalOriginalSizeKB += file.size / 1024;
-                
-                const fileId = 'file_' + Date.now() + '_' + i;
-                const fileObj = { id: fileId, file: file, type: file.type, name: file.name };
-                fileArray.push(fileObj);
-
-                createGridItem(fileObj);
+            if (!apiKey) {
+                alert("দয়া করে আপনার Gemini API Key দিন!");
+                return;
             }
-            
-            if (totalOriginalSizeKB > 250) targetSizeSlider.value = 250;
-            else targetSizeSlider.value = Math.max(100, Math.round(totalOriginalSizeKB));
-            sliderValueText.textContent = targetSizeSlider.value;
-            
-            e.target.value = ''; 
-        }
-
-        function createGridItem(fileObj) {
-            const index = fileArray.length;
-            const div = document.createElement('div');
-            div.className = 'grid-item';
-            div.setAttribute('data-id', fileObj.id);
-
-            let previewHTML = '';
-            if (fileObj.type.startsWith('image/')) {
-                const url = URL.createObjectURL(fileObj.file);
-                previewHTML = `<img src="${url}" alt="preview">`;
-            } else {
-                previewHTML = `<div class="pdf-icon">📑</div>`;
+            if (!base64Data) {
+                alert("দয়া করে একটি ফাইল (ছবি বা PDF) আপলোড করুন!");
+                return;
             }
 
-            div.innerHTML = `
-                <div class="item-number">${index}</div>
-                <button class="btn-remove" onclick="removeFile('${fileObj.id}', this)" title="Remove">✕</button>
-                <div class="item-preview">${previewHTML}</div>
-                <div class="item-name" title="${fileObj.name}">${fileObj.name}</div>
-            `;
-            fileGrid.appendChild(div);
-        }
+            generateBtn.disabled = true;
+            loader.style.display = 'block';
+            resultBox.style.display = 'none';
 
-        window.removeFile = function(id, btnElement) {
-            fileArray = fileArray.filter(f => f.id !== id);
-            btnElement.parentElement.remove();
-            
-            const items = fileGrid.querySelectorAll('.grid-item');
-            items.forEach((item, index) => {
-                item.querySelector('.item-number').innerText = index + 1;
-            });
+            // Gemini-কে দেওয়া নির্দেশ (Prompt)
+            const systemPrompt = "Extract all the text from this document exactly as it appears. Maintain the language (Bengali or English). Do not add any extra formatting, just the plain text.";
 
-            if(fileArray.length === 0) {
-                workspaceStage.style.display = 'none';
-                uploadStage.style.display = 'block';
-                pageTitle.style.display = 'block';
-                totalOriginalSizeKB = 0;
-            }
-        }
-
-        startProcessBtn.addEventListener('click', async function() {
-            if (fileArray.length === 0) return;
-
-            const targetKB = parseInt(targetSizeSlider.value);
-            const isOcrEnabled = ocrCheckbox.checked;
-
-            workspaceStage.style.display = 'none';
-            processStage.style.display = 'flex';
-            progressBar.style.width = "10%";
-            processStatusText.innerText = "Loading files...";
-
-            let allPagesData = [];
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             try {
-                for (let i = 0; i < fileArray.length; i++) {
-                    const fObj = fileArray[i];
-                    
-                    if (fObj.type.startsWith('image/')) {
-                        let img = new Image();
-                        img.src = URL.createObjectURL(fObj.file);
-                        await new Promise(resolve => img.onload = resolve);
-                        let canvas = document.createElement('canvas');
-                        canvas.width = img.width; canvas.height = img.height;
-                        let ctx = canvas.getContext('2d');
-                        ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, img.width, img.height);
-                        ctx.drawImage(img, 0, 0, img.width, img.height);
-                        allPagesData.push({ canvas, w: img.width, h: img.height, words: [] });
-                        
-                    } else if (fObj.type === 'application/pdf') {
-                        let arrayBuffer = await fObj.file.arrayBuffer();
-                        let loadingTask = pdfjs.getDocument({ data: arrayBuffer });
-                        let pdf = await loadingTask.promise;
-                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                            let page = await pdf.getPage(pageNum);
-                            let viewport = page.getViewport({ scale: 2.0 }); 
-                            let canvas = document.createElement('canvas');
-                            let ctx = canvas.getContext('2d');
-                            canvas.height = viewport.height; canvas.width = viewport.width;
-                            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-                            allPagesData.push({ canvas, w: viewport.width, h: viewport.height, words: [] });
-                        }
-                    }
-                }
-
-                progressBar.style.width = "30%";
-
-                if (isOcrEnabled) {
-                    for (let i = 0; i < allPagesData.length; i++) {
-                        processStatusText.innerText = `Scanning text (Page ${i + 1}/${allPagesData.length})...`;
-                        const { data } = await Tesseract.recognize(allPagesData[i].canvas, 'eng', {
-                            logger: m => {
-                                if(m.status === 'recognizing text') {
-                                    progressBar.style.width = (30 + (m.progress * 40)) + "%";
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: systemPrompt },
+                                {
+                                    inline_data: {
+                                        mime_type: fileMimeType,
+                                        data: base64Data
+                                    }
                                 }
-                            }
-                        });
-                        if (data && data.words) {
-                            allPagesData[i].words = data.words
-                                .filter(w => w.confidence > 40)
-                                .map(w => {
-                                    let cleanText = w.text.replace(/[^a-zA-Z0-9\/\-\.,\s]/g, "").trim(); 
-                                    return { text: cleanText, bbox: w.bbox };
-                                }).filter(w => w.text.length > 0);
-                        }
-                    }
-                } else {
-                    progressBar.style.width = "70%";
+                            ]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error("API Key ভুল অথবা ফাইলের সাইজ খুব বড়।");
                 }
 
-                processStatusText.innerText = "Compressing and generating PDF...";
-
-                let newPdfDoc = await PDFLib.PDFDocument.create();
-                let font = null;
-                if(isOcrEnabled) {
-                    font = await newPdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-                }
-
-                let ratio = targetKB / totalOriginalSizeKB;
-                let quality = Math.max(0.60, Math.min(0.95, ratio));
-
-                for (let item of allPagesData) {
-                    let imgDataUrl = item.canvas.toDataURL('image/jpeg', quality);
-                    let embedImg = await newPdfDoc.embedJpg(imgDataUrl);
-                    let newPage = newPdfDoc.addPage([item.w, item.h]);
-                    
-                    newPage.drawImage(embedImg, { x: 0, y: 0, width: item.w, height: item.h });
-
-                    if (isOcrEnabled && font) {
-                        for (let word of item.words) {
-                            let pdfY = item.h - word.bbox.y1;
-                            let fontSize = Math.max(8, word.bbox.y1 - word.bbox.y0);
-                            try {
-                                newPage.drawText(word.text, {
-                                    x: word.bbox.x0, y: pdfY, size: fontSize, font: font, opacity: 0 
-                                });
-                            } catch(e) {}
-                        }
-                    }
-                }
-
-                const finalBytes = await newPdfDoc.save({ useObjectStreams: true });
-                const finalSizeKB = finalBytes.length / 1024;
-
-                progressBar.style.width = "100%";
-                processStatusText.innerText = "Completed!";
-
-                const blob = new Blob([finalBytes], { type: "application/pdf" });
-                const downloadUrl = URL.createObjectURL(blob);
+                const data = await response.json();
+                let aiText = data.candidates[0].content.parts[0].text;
                 
-                downloadBtn.href = downloadUrl;
-                downloadBtn.download = "Pro_Tools_" + Date.now() + ".pdf";
-                
-                finalStatusText.innerHTML = `Merged <strong>${allPagesData.length} pages</strong> into a <strong>${finalSizeKB.toFixed(2)} KB</strong> PDF.`;
-
-                setTimeout(() => {
-                    processStage.style.display = 'none';
-                    successStage.style.display = 'flex';
-                }, 800);
+                outputContent.innerText = aiText;
+                resultBox.style.display = 'block';
 
             } catch (error) {
-                alert("❌ Sorry, the process failed. Please refresh and try again.");
+                alert("❌ এরর: " + error.message);
                 console.error(error);
-                location.reload();
+            } finally {
+                generateBtn.disabled = false;
+                loader.style.display = 'none';
             }
-        });
+        }
+
+        // কপি করার ফাংশন
+        function copyText() {
+            const text = document.getElementById('outputContent').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("টেক্সট কপি করা হয়েছে!");
+            });
+        }
+
+        // PDF বানানোর ফাংশন (html2pdf লাইব্রেরি ব্যবহার করে)
+        function downloadPDF() {
+            const element = document.getElementById('outputContent');
+            const opt = {
+                margin:       0.5,
+                filename:     'Extracted_Document.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' }
+            };
+
+            // PDF তৈরি এবং ডাউনলোড শুরু
+            html2pdf().set(opt).from(element).save();
+        }
     </script>
 </body>
 </html>
