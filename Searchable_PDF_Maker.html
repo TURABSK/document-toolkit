@@ -227,7 +227,6 @@ async function geminiOCR(canvas){
 
  const base64=canvas.toDataURL("image/jpeg",0.88).split(",")[1];
  
- // মেইন ম্যাজিক: লেআউট এবং কোঅর্ডিনেট ডিটেকশন প্রম্পট
  const prompt=`Extract all visible text from this document. 
  Maintain the exact layout, especially for multi-column documents like voter lists.
  Return ONLY a valid JSON array of objects. 
@@ -237,8 +236,8 @@ async function geminiOCR(canvas){
  Example: [{"text": "নূরজাহান", "box": [120, 50, 150, 200]}]
  Do not add any markdown formatting or explanations.`;
 
- // স্টেবল মডেল gemini-1.5-flash সেট করা হলো
- const url="https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+encodeURIComponent(apiKey);
+ // সঠিকভাবে gemini-3.6-flash আপডেট করা হলো
+ const url="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key="+encodeURIComponent(apiKey);
 
  const response=await fetch(url,{
    method:"POST", headers:{"Content-Type":"application/json"},
@@ -287,25 +286,23 @@ async function createPDF(pages, quality, ocr) {
       const pageData = pages[i];
       if (i > 0) doc.addPage([pageData.w, pageData.h], pageData.w > pageData.h ? 'landscape' : 'portrait');
 
-      // লেআউট অনুযায়ী ঠিক জায়গায় টেক্সট বসানো
       if (ocr && pageData.blocks && pageData.blocks.length > 0) {
           doc.setFont("Bengali");
-          doc.setTextColor(245, 245, 245); // প্রায় অদৃশ্য
+          doc.setTextColor(245, 245, 245); 
           
           for (const block of pageData.blocks) {
               try {
                   const box = block.box;
                   if(!box || box.length !== 4) continue;
                   
-                  // 0-1000 স্কেল থেকে অরিজিনাল মাপে রূপান্তর
                   const yMin = (box[0] / 1000) * pageData.h;
                   const xMin = (box[1] / 1000) * pageData.w;
                   const yMax = (box[2] / 1000) * pageData.h;
                   
-                  let fontSize = Math.max(10, (yMax - yMin) * 0.85); // উচ্চতা অনুযায়ী ফন্ট সাইজ
+                  let fontSize = Math.max(10, (yMax - yMin) * 0.85); 
                   doc.setFontSize(fontSize);
                   
-                  let yPos = yMin + fontSize * 0.8; // Baseline ফিক্স
+                  let yPos = yMin + fontSize * 0.8; 
                   
                   doc.text(block.text, xMin, yPos);
               } catch(e) {}
