@@ -1,464 +1,403 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Searchable PDF Maker (Gemini AI + Bengali Support)</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-    <!-- বাংলা ফন্ট সাপোর্টের জন্য Fontkit যুক্ত করা হলো -->
-    <script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.js"></script>
-    
-    <style>
-        /* Modern Font and Premium Background */
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); margin: 0; padding: 0; color: #2d3748; display: flex; flex-direction: column; min-height: 100vh; }
-        
-        /* --- Login Modal Styles --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 32, 44, 0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .login-box { background: white; padding: 40px; border-radius: 20px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3); }
-        .login-box h2 { color: #4facfe; margin: 0 0 10px 0; font-size: 24px; font-weight: 800; }
-        .login-box p { color: #718096; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }
-        .login-box input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; transition: 0.3s; }
-        .login-box input:focus { outline: none; border-color: #4facfe; }
-        .login-box button { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3); }
-        .login-box button:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(79, 172, 254, 0.4); }
-        .hidden { display: none !important; }
-        .locked-content { filter: blur(10px); pointer-events: none; user-select: none; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Pragati Pro Searchable PDF Maker</title>
 
-        /* Glassmorphism Navbar */
-        .navbar { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); padding: 15px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.5); }
-        .navbar h2 { margin: 0; font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 10px; }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<!-- fontkit depends on the Babel regenerator runtime for some OpenType shaping paths -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/regenerator-runtime/0.13.11/runtime.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 
-        /* Main Container */
-        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; width: 100%; box-sizing: border-box; transition: all 0.3s ease; }
-        .page-title { text-align: center; margin-bottom: 35px; }
-        .page-title h1 { font-size: 32px; margin: 0 0 10px 0; color: #1a202c; font-weight: 800; }
-        .page-title p { font-size: 16px; color: #4a5568; margin: 0; }
-
-        /* Glass Cards */
-        .glass-card { background-color: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.08), 0 5px 15px rgba(0,0,0,0.03); border: 1px solid rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); }
-
-        /* Stage 1: Upload Zone */
-        #upload-stage { width: 100%; max-width: 700px; padding: 40px; text-align: center; }
-        .upload-btn-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
-        .btn-large { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; padding: 25px 40px; font-size: 22px; font-weight: bold; border-radius: 15px; cursor: pointer; transition: all 0.3s; width: 100%; box-shadow: 0 10px 25px rgba(79, 172, 254, 0.3); display: flex; justify-content: center; align-items: center; gap: 15px; }
-        .btn-large:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(79, 172, 254, 0.4); }
-        .upload-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; width: 100%; }
-        .drop-zone-text { margin-top: 25px; color: #718096; font-size: 15px; font-weight: 500; }
-
-        /* Stage 2: Workspace */
-        #workspace-stage { display: none; width: 100%; max-width: 1200px; gap: 30px; align-items: flex-start; justify-content: center; }
-        .grid-container { flex: 1; padding: 25px; min-height: 400px; }
-        #file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
-        .grid-item { background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); padding: 12px; position: relative; cursor: grab; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: space-between; aspect-ratio: 1 / 1.2; border: 1px solid #e2e8f0; }
-        .grid-item:active { cursor: grabbing; }
-        .grid-item:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: #cbd5e0; }
-        .item-preview { width: 100%; height: 75%; background: #f7fafc; border-radius: 8px; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #edf2f7; }
-        .item-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .item-preview .pdf-icon { font-size: 40px; }
-        .item-number { position: absolute; top: -10px; left: -10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 13px; font-weight: bold; box-shadow: 0 4px 8px rgba(118, 75, 162, 0.3); }
-        .btn-remove { position: absolute; top: -10px; right: -10px; background: white; color: #e53e3e; border: 1px solid #fc8181; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; cursor: pointer; box-shadow: 0 4px 8px rgba(229, 62, 62, 0.2); transition: 0.2s; }
-        .btn-remove:hover { background: #e53e3e; color: white; border-color: #e53e3e; transform: scale(1.1); }
-        .item-name { font-size: 12px; color: #4a5568; text-align: center; margin-top: 12px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
-
-        /* Sidebar Settings */
-        .sidebar { width: 340px; position: sticky; top: 20px; overflow: hidden; }
-        .sidebar-header { background: #fdfbfb; padding: 20px; border-bottom: 1px solid #edf2f7; font-weight: bold; font-size: 18px; display: flex; align-items: center; gap: 10px; border-top-left-radius: 20px; border-top-right-radius: 20px; }
-        .sidebar-content { padding: 25px; }
-        .setting-group { margin-bottom: 30px; }
-        .setting-title { font-size: 15px; font-weight: bold; color: #2d3748; margin-bottom: 15px; display: block; }
-        .slider-wrap { background: #f7fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .slider-val { color: #d69e2e; font-size: 24px; font-weight: 800; margin-bottom: 15px; display: block; text-align: center; }
-        input[type="range"] { width: 100%; cursor: pointer; height: 8px; background: #cbd5e0; border-radius: 5px; outline: none; -webkit-appearance: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #d69e2e; cursor: pointer; box-shadow: 0 2px 6px rgba(214, 158, 46, 0.4); transition: 0.2s; }
-        .toggle-wrapper { display: flex; align-items: flex-start; gap: 15px; background: #f7fafc; padding: 18px 15px; border-radius: 12px; border: 1px solid #e2e8f0; cursor: pointer; transition: 0.3s; }
-        .toggle-wrapper:hover { border-color: #cbd5e0; background: #edf2f7; }
-        .switch { position: relative; display: inline-block; width: 46px; height: 24px; flex-shrink: 0; margin-top: 2px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider-round { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e0; transition: .4s; border-radius: 24px; }
-        .slider-round:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        input:checked + .slider-round { background-color: #48bb78; }
-        input:checked + .slider-round:before { transform: translateX(22px); }
-        .toggle-text { font-size: 15px; color: #2d3748; font-weight: bold; }
-        .toggle-subtext { font-size: 12px; color: #718096; display: block; margin-top: 5px; line-height: 1.4; }
-
-        .action-footer { padding: 25px; border-top: 1px solid #edf2f7; background: white; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
-        .btn-process { background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%); color: white; border: none; padding: 18px; width: 100%; font-size: 18px; font-weight: bold; border-radius: 12px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(242, 153, 74, 0.3); text-transform: uppercase; letter-spacing: 0.5px; }
-        .btn-process:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(242, 153, 74, 0.4); }
-
-        /* Stages 3 & 4: Loading and Success */
-        .center-box { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 600px; padding: 50px; text-align: center; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #edf2f7; border-top: 5px solid #4facfe; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 25px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .progress-container { width: 100%; background-color: #edf2f7; border-radius: 10px; height: 12px; margin: 25px 0; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
-        .progress-bar { height: 100%; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); width: 0%; transition: width 0.3s ease; border-radius: 10px; }
-        .success-icon { font-size: 80px; color: #48bb78; margin-bottom: 20px; text-shadow: 0 4px 10px rgba(72, 187, 120, 0.3); }
-        .btn-download { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; text-decoration: none; padding: 18px 40px; font-size: 18px; font-weight: bold; border-radius: 12px; display: inline-flex; align-items: center; gap: 10px; margin-top: 25px; transition: 0.3s; box-shadow: 0 8px 20px rgba(17, 153, 142, 0.3); }
-        .btn-download:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(17, 153, 142, 0.4); }
-        .btn-restart { margin-top: 25px; color: #718096; text-decoration: none; font-size: 15px; cursor: pointer; display: inline-block; font-weight: 500; transition: 0.2s; }
-        .btn-restart:hover { color: #4facfe; }
-
-        @media (max-width: 850px) { #workspace-stage { flex-direction: column; align-items: center; } .sidebar { width: 100%; position: static; } }
-    </style>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#f5f7fa,#c3cfe2);color:#1a202c;min-height:100vh}
+.hidden{display:none!important}
+.nav{padding:18px;text-align:center;background:#ffffffd9;backdrop-filter:blur(10px);box-shadow:0 3px 15px #0000000d}
+.nav h2{margin:0;font-size:24px}
+.main{max-width:1250px;margin:auto;padding:35px 18px}
+.title{text-align:center;margin-bottom:28px}
+.title h1{margin:0 0 8px;font-size:32px}.title p{margin:0;color:#718096}
+.card{background:#fffffff2;border:1px solid #ffffffaa;border-radius:18px;box-shadow:0 12px 35px #00000012}
+.login{position:fixed;inset:0;background:#1a202cdd;display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
+.loginbox{background:#fff;padding:32px;border-radius:18px;width:min(430px,100%);text-align:center}
+input[type=password]{width:100%;padding:14px;border:1px solid #cbd5e0;border-radius:10px;margin:15px 0;font-size:16px}
+button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;cursor:pointer}
+.primary{width:100%;background:linear-gradient(135deg,#4facfe,#00c6ff);color:#fff}
+.upload{padding:45px;text-align:center;max-width:720px;margin:auto}
+.upload label{display:block;padding:25px;background:linear-gradient(135deg,#4facfe,#00c6ff);color:#fff;border-radius:14px;font-size:20px;font-weight:700;cursor:pointer}
+.upload input{display:none}
+.workspace{display:grid;grid-template-columns:1fr 340px;gap:25px}
+.gridcard{padding:25px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:18px}
+.item{position:relative;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:10px;cursor:grab}
+.preview{height:160px;background:#f7fafc;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.preview img{max-width:100%;max-height:100%;object-fit:contain}
+.num{position:absolute;top:-8px;left:-8px;background:#667eea;color:white;border-radius:50%;width:27px;height:27px;display:grid;place-items:center;font-size:12px}
+.remove{position:absolute;right:-8px;top:-8px;background:#fff;color:#e53e3e;border:1px solid #fc8181;border-radius:50%;width:27px;height:27px;padding:0}
+.name{text-align:center;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:9px}
+.sidebar{padding:22px;height:max-content}
+.group{margin-bottom:22px}.group label{font-weight:700;display:block;margin-bottom:9px}
+.range{width:100%}.val{text-align:center;font-size:22px;font-weight:800}
+.toggle{display:flex;gap:10px;align-items:flex-start;background:#f7fafc;padding:14px;border-radius:10px}
+.progressbox{display:none;text-align:center;padding:45px;max-width:650px;margin:auto}
+.barwrap{height:12px;background:#e2e8f0;border-radius:10px;overflow:hidden;margin:20px 0}.bar{height:100%;width:0;background:#4facfe;transition:.2s}
+.success{display:none;text-align:center;padding:45px;max-width:650px;margin:auto}
+.download{display:inline-block;background:#11998e;color:#fff;text-decoration:none;margin-top:15px}
+.error{background:#fff5f5;color:#c53030;border:1px solid #feb2b2;border-radius:10px;padding:12px;margin-top:15px;text-align:left;white-space:pre-wrap;font-size:13px}
+@media(max-width:850px){.workspace{grid-template-columns:1fr}.sidebar{width:100%}}
+</style>
 </head>
 <body>
 
-    <!-- Login Gate Modal -->
-    <div id="loginModal" class="modal-overlay">
-        <div class="login-box">
-            <h2>Pragati AI Tools 🚀</h2>
-            <p>আমাদের প্রো-লেভেলের টুলগুলো ব্যবহার করতে আপনার নিজস্ব Google Gemini API Key দিয়ে লগইন করুন।</p>
-            <input type="password" id="loginApiKey" placeholder="আপনার API Key এখানে দিন...">
-            <button onclick="loginAndSaveKey()">লগইন করুন ও সেভ রাখুন</button>
-            <p style="font-size: 12px; color: #a0aec0; margin-top: 20px;">🔒 আপনার Key সরাসরি আপনার ব্রাউজারে সেভ থাকে।</p>
-        </div>
+<div id="loginModal" class="login">
+  <div class="loginbox">
+    <h2>Pragati AI Tools 🚀</h2>
+    <p>Gemini API Key দিন। Key শুধু এই browser-এর localStorage-এ থাকবে।</p>
+    <input id="apiKeyInput" type="password" placeholder="Gemini API Key">
+    <button class="primary" onclick="saveKey()">Login & Save</button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<div class="nav"><h2>📄 Pragati Pro Searchable PDF Maker</h2></div>
+<div class="main">
+
+<div id="title" class="title">
+  <h1>Upload Files</h1>
+  <p>Images/PDF merge, compression এবং Gemini OCR searchable PDF</p>
+</div>
+
+<div id="upload" class="upload card">
+  <label>📂 Select Images / PDF
+    <input id="fileInput" type="file" multiple accept="application/pdf,image/png,image/jpeg,image/webp">
+  </label>
+  <p>একাধিক file নির্বাচন করতে পারবেন</p>
+</div>
+
+<div id="workspace" class="workspace hidden">
+  <div class="gridcard card">
+    <h3>🖱️ Pages — Drag & Drop করে order বদলান</h3>
+    <div id="grid" class="grid"></div>
+    <div style="margin-top:22px">
+      <label style="display:inline-block;padding:12px 18px;border:2px dashed #cbd5e0;border-radius:10px;cursor:pointer">
+        + Add More Files
+        <input id="moreInput" type="file" multiple accept="application/pdf,image/png,image/jpeg,image/webp" style="display:none">
+      </label>
+    </div>
+  </div>
+
+  <aside class="sidebar card">
+    <div class="group">
+      <label>🎯 Target PDF Size</label>
+      <div class="val"><span id="sizeText">500</span> KB</div>
+      <input id="sizeSlider" class="range" type="range" min="100" max="5000" step="50" value="500">
+      <small>এটি target; exact size guarantee করা সম্ভব নয়।</small>
     </div>
 
-    <!-- Main Content Area -->
-    <div id="appContainer" class="main-content locked-content">
-        <div class="page-title" id="pageTitle">
-            <h1>Upload Files</h1>
-            <p>Create, organize, and compress PDFs with intelligent Gemini AI support.</p>
-        </div>
-
-        <div id="upload-stage" class="glass-card">
-            <div class="upload-btn-wrapper">
-                <button class="btn-large">📂 Select Files (Images / PDF)</button>
-                <input type="file" id="fileInput" accept="application/pdf, image/png, image/jpeg, image/jpg, image/webp" multiple>
-            </div>
-            <div class="drop-zone-text">or drop your files directly here</div>
-        </div>
-
-        <div id="workspace-stage">
-            <div class="grid-container glass-card">
-                <div style="font-weight: bold; color: #4a5568; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #edf2f7;">
-                    🖱️ Drag and drop items to reorder pages
-                </div>
-                <div id="file-grid"></div>
-                <div class="upload-btn-wrapper" style="margin-top: 35px; text-align: center;">
-                    <button style="background: #f7fafc; color: #4a5568; border: 2px dashed #cbd5e0; padding: 15px 35px; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 15px;">
-                        + Add More Files
-                    </button>
-                    <input type="file" id="addMoreInput" accept="application/pdf, image/png, image/jpeg, image/jpg" multiple>
-                </div>
-            </div>
-
-            <div class="sidebar glass-card">
-                <div class="sidebar-header">⚙️ Processing Options</div>
-                <div class="sidebar-content">
-                    <div class="setting-group">
-                        <span class="setting-title">🎯 Target Size (Compression)</span>
-                        <div class="slider-wrap">
-                            <span class="slider-val"><span id="sliderValueText">250</span> KB</span>
-                            <input type="range" id="targetSizeSlider" min="100" max="2000" step="10" value="250">
-                        </div>
-                    </div>
-
-                    <div class="setting-group">
-                        <label class="toggle-wrapper">
-                            <div class="switch">
-                                <input type="checkbox" id="ocrCheckbox">
-                                <span class="slider-round"></span>
-                            </div>
-                            <div>
-                                <div class="toggle-text">Make PDF Searchable (AI)</div>
-                                <div class="toggle-subtext">Gemini AI ব্যবহার করে বাংলা/ইংরেজি টেক্সট পিডিএফ-এর সাথে জুড়ে দিন।</div>
-                            </div>
-                        </label>
-                    </div>
-                    
-                    <button onclick="logoutUser()" style="background: #fff; color: #e53e3e; border: 1px solid #fc8181; padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; font-size: 14px; margin-top: 10px;">
-                        🚪 Logout / Clear API Key
-                    </button>
-                </div>
-                <div class="action-footer">
-                    <button class="btn-process" id="startProcessBtn">⚙️ Generate PDF</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="process-stage" class="center-box glass-card">
-            <div class="spinner"></div>
-            <h2 style="color: #1a202c; margin-bottom: 5px;">Processing...</h2>
-            <p id="processStatusText" style="color: #718096; font-weight: 500;">Please do not close this window.</p>
-            <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
-        </div>
-
-        <div id="success-stage" class="center-box glass-card">
-            <div class="success-icon">✅</div>
-            <h1 style="color: #1a202c; margin: 0 0 10px 0;">Success!</h1>
-            <p id="finalStatusText" style="color: #4a5568; font-size: 16px;">Your file is optimized and ready.</p>
-            <a href="#" id="downloadBtn" class="btn-download">📥 Download PDF</a>
-            <a href="javascript:location.reload()" class="btn-restart">🔄 Process New Files</a>
-        </div>
+    <div class="group">
+      <div class="toggle">
+        <input id="ocr" type="checkbox">
+        <div><b>🔎 Make Searchable with Gemini</b><br>
+        <small>বাংলা + English OCR text layer যোগ করবে।</small></div>
+      </div>
     </div>
 
-    <script>
-        // Authentication
-        const storageKeyName = "pragati_gemini_key";
+    <button id="generate" class="primary">⚙️ Generate PDF</button>
+    <button onclick="clearKey()" style="width:100%;margin-top:10px;background:#fff;color:#e53e3e;border:1px solid #fc8181">Logout / Clear Key</button>
+  </aside>
+</div>
 
-        window.onload = function() {
-            const savedKey = localStorage.getItem(storageKeyName);
-            if (savedKey) {
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('appContainer').classList.remove('locked-content');
-            }
-        };
+<div id="progress" class="progressbox card">
+  <h2>Processing...</h2>
+  <p id="status">Starting...</p>
+  <div class="barwrap"><div id="bar" class="bar"></div></div>
+  <div id="error" class="error hidden"></div>
+</div>
 
-        function loginAndSaveKey() {
-            const inputKey = document.getElementById('loginApiKey').value.trim();
-            if (inputKey === "") { alert("দয়া করে একটি সঠিক API Key দিন!"); return; }
-            localStorage.setItem(storageKeyName, inputKey);
-            document.getElementById('loginModal').classList.add('hidden');
-            document.getElementById('appContainer').classList.remove('locked-content');
-        }
+<div id="success" class="success card">
+  <h1>✅ Complete</h1>
+  <p id="result"></p>
+  <a id="download" class="download">📥 Download PDF</a>
+  <br><br><button onclick="location.reload()">🔄 New PDF</button>
+</div>
 
-        function logoutUser() {
-            if(confirm("আপনি কি নিশ্চিত যে আপনার API Key ডিলিট করে লগআউট করতে চান?")) {
-                localStorage.removeItem(storageKeyName);
-                location.reload();
-            }
-        }
+</div>
 
-        // Core App variables
-        const pdfjs = window['pdfjs-dist/build/pdf'];
-        pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-        const fileInput = document.getElementById('fileInput');
-        const addMoreInput = document.getElementById('addMoreInput');
-        const fileGrid = document.getElementById('file-grid');
-        const uploadStage = document.getElementById('upload-stage');
-        const workspaceStage = document.getElementById('workspace-stage');
-        const processStage = document.getElementById('process-stage');
-        const successStage = document.getElementById('success-stage');
-        const pageTitle = document.getElementById('pageTitle');
-        const targetSizeSlider = document.getElementById('targetSizeSlider');
-        const sliderValueText = document.getElementById('sliderValueText');
-        const ocrCheckbox = document.getElementById('ocrCheckbox');
-        const startProcessBtn = document.getElementById('startProcessBtn');
-        const processStatusText = document.getElementById('processStatusText');
-        const progressBar = document.getElementById('progressBar');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const finalStatusText = document.getElementById('finalStatusText');
+const KEY_NAME="pragati_gemini_key";
+const state={files:[],pages:[],originalKB:0};
 
-        let fileArray = []; 
-        let totalOriginalSizeKB = 0;
+const $=id=>document.getElementById(id);
+const setStatus=(t,p)=>{$("status").textContent=t;if(p!==undefined)$("bar").style.width=p+"%"};
 
-        targetSizeSlider.addEventListener('input', function() { sliderValueText.textContent = this.value; });
-        fileInput.addEventListener('change', handleFiles);
-        addMoreInput.addEventListener('change', handleFiles);
+window.addEventListener("load",()=>{
+  if(localStorage.getItem(KEY_NAME)) $("loginModal").classList.add("hidden");
+});
 
-        new Sortable(fileGrid, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            onEnd: function (evt) {
-                const items = fileGrid.querySelectorAll('.grid-item');
-                let newFileArray = [];
-                items.forEach((item, index) => {
-                    const id = item.getAttribute('data-id');
-                    const found = fileArray.find(f => f.id === id);
-                    if (found) newFileArray.push(found);
-                    item.querySelector('.item-number').innerText = index + 1;
-                });
-                fileArray = newFileArray;
-            }
-        });
+function saveKey(){
+  const key=$("apiKeyInput").value.trim();
+  if(!key){$("loginError").innerHTML='<div class="error">API Key দিন।</div>';return}
+  localStorage.setItem(KEY_NAME,key);
+  $("loginModal").classList.add("hidden");
+}
+function clearKey(){localStorage.removeItem(KEY_NAME);location.reload()}
 
-        async function handleFiles(e) {
-            const files = e.target.files;
-            if (files.length === 0) return;
+$("sizeSlider").oninput=e=>$("sizeText").textContent=e.target.value;
+$("fileInput").onchange=e=>addFiles([...e.target.files]);
+$("moreInput").onchange=e=>addFiles([...e.target.files]);
 
-            uploadStage.style.display = 'none';
-            pageTitle.style.display = 'none';
-            workspaceStage.style.display = 'flex';
+new Sortable($("grid"),{
+ animation:150,
+ onEnd:()=>{
+   const ids=[...$("grid").children].map(x=>x.dataset.id);
+   state.pages.sort((a,b)=>ids.indexOf(a.id)-ids.indexOf(b.id));
+   renumber();
+ }
+});
 
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                totalOriginalSizeKB += file.size / 1024;
-                const fileId = 'file_' + Date.now() + '_' + i;
-                const fileObj = { id: fileId, file: file, type: file.type, name: file.name };
-                fileArray.push(fileObj);
-                createGridItem(fileObj);
-            }
-            
-            if (totalOriginalSizeKB > 250) targetSizeSlider.value = 250;
-            else targetSizeSlider.value = Math.max(100, Math.round(totalOriginalSizeKB));
-            sliderValueText.textContent = targetSizeSlider.value;
-            e.target.value = ''; 
-        }
+async function addFiles(files){
+  if(!files.length)return;
+  $("upload").classList.add("hidden");
+  $("title").classList.add("hidden");
+  $("workspace").classList.remove("hidden");
 
-        function createGridItem(fileObj) {
-            const index = fileArray.length;
-            const div = document.createElement('div');
-            div.className = 'grid-item';
-            div.setAttribute('data-id', fileObj.id);
+  for(const file of files){
+    if(!["application/pdf","image/png","image/jpeg","image/webp"].includes(file.type)){
+      alert("Unsupported file: "+file.name);continue;
+    }
+    const id="p_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+    const obj={id,file,name:file.name,type:file.type};
+    state.files.push(obj);
+    state.originalKB+=file.size/1024;
+    addGrid(obj);
+  }
+  $("fileInput").value="";
+  $("moreInput").value="";
+  if(state.originalKB>0){
+    $("sizeSlider").value=Math.max(100,Math.min(5000,Math.round(Math.min(500,state.originalKB))));
+    $("sizeText").textContent=$("sizeSlider").value;
+  }
+}
 
-            let previewHTML = '';
-            if (fileObj.type.startsWith('image/')) {
-                const url = URL.createObjectURL(fileObj.file);
-                previewHTML = `<img src="${url}" alt="preview">`;
-            } else { previewHTML = `<div class="pdf-icon">📑</div>`; }
+function addGrid(obj){
+  const div=document.createElement("div");
+  div.className="item";div.dataset.id=obj.id;
+  const preview=obj.type.startsWith("image/")
+    ? `<img src="${URL.createObjectURL(obj.file)}">`
+    : `<div style="font-size:55px">📑</div>`;
+  div.innerHTML=`<div class="num"></div>
+    <button class="remove">✕</button>
+    <div class="preview">${preview}</div>
+    <div class="name" title="${escapeHtml(obj.name)}">${escapeHtml(obj.name)}</div>`;
+  div.querySelector(".remove").onclick=()=>{
+    state.files=state.files.filter(x=>x.id!==obj.id);
+    div.remove();renumber();
+    if(!state.files.length){$("workspace").classList.add("hidden");$("upload").classList.remove("hidden");$("title").classList.remove("hidden")}
+  };
+  $("grid").appendChild(div);renumber();
+}
+function renumber(){[...$("grid").children].forEach((x,i)=>x.querySelector(".num").textContent=i+1)}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 
-            div.innerHTML = `
-                <div class="item-number">${index}</div>
-                <button class="btn-remove" onclick="removeFile('${fileObj.id}', this)" title="Remove">✕</button>
-                <div class="item-preview">${previewHTML}</div>
-                <div class="item-name" title="${fileObj.name}">${fileObj.name}</div>
-            `;
-            fileGrid.appendChild(div);
-        }
+function fileToDataURL(file){
+ return new Promise((resolve,reject)=>{
+   const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);
+ });
+}
 
-        window.removeFile = function(id, btnElement) {
-            fileArray = fileArray.filter(f => f.id !== id);
-            btnElement.parentElement.remove();
-            const items = fileGrid.querySelectorAll('.grid-item');
-            items.forEach((item, index) => { item.querySelector('.item-number').innerText = index + 1; });
-            if(fileArray.length === 0) {
-                workspaceStage.style.display = 'none'; uploadStage.style.display = 'block';
-                pageTitle.style.display = 'block'; totalOriginalSizeKB = 0;
-            }
-        }
+async function imageToCanvas(file,maxDim=1800){
+ const url=URL.createObjectURL(file);
+ const img=await new Promise((resolve,reject)=>{
+   const i=new Image();i.onload=()=>resolve(i);i.onerror=reject;i.src=url;
+ });
+ let w=img.naturalWidth,h=img.naturalHeight;
+ const scale=Math.min(1,maxDim/Math.max(w,h));w=Math.round(w*scale);h=Math.round(h*scale);
+ const c=document.createElement("canvas");c.width=w;c.height=h;
+ const ctx=c.getContext("2d",{alpha:false});ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+ URL.revokeObjectURL(url);return c;
+}
 
-        startProcessBtn.addEventListener('click', async function() {
-            if (fileArray.length === 0) return;
+async function loadPages(){
+ const pages=[];
+ for(let i=0;i<state.files.length;i++){
+   const f=state.files[i];
+   setStatus(`Loading ${i+1}/${state.files.length}: ${f.name}`,5+Math.round(i/state.files.length*20));
+   if(f.type.startsWith("image/")){
+     const c=await imageToCanvas(f.file,1800);
+     pages.push({canvas:c,w:c.width,h:c.height,source:f.name,lines:[]});
+   }else{
+     const buf=await f.file.arrayBuffer();
+     const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+     for(let p=1;p<=pdf.numPages;p++){
+       setStatus(`Rendering ${f.name} — page ${p}/${pdf.numPages}`,10);
+       const page=await pdf.getPage(p);
+       const base=page.getViewport({scale:1});
+       const scale=Math.min(2,1800/Math.max(base.width,base.height));
+       const vp=page.getViewport({scale});
+       const c=document.createElement("canvas");c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
+       await page.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;
+       pages.push({canvas:c,w:c.width,h:c.height,source:`${f.name} — page ${p}`,lines:[]});
+     }
+   }
+ }
+ return pages;
+}
 
-            const targetKB = parseInt(targetSizeSlider.value);
-            const isOcrEnabled = ocrCheckbox.checked;
-            const apiKey = localStorage.getItem(storageKeyName);
+async function geminiOCR(canvas,index,total){
+ const apiKey=localStorage.getItem(KEY_NAME);
+ if(!apiKey)throw new Error("Gemini API Key পাওয়া যায়নি।");
 
-            if (isOcrEnabled && !apiKey) {
-                alert("API Key পাওয়া যায়নি! দয়া করে আবার লগইন করুন।");
-                location.reload(); return;
-            }
+ const base64=canvas.toDataURL("image/jpeg",0.88).split(",")[1];
+ const prompt=`Extract ALL visible text from this document image.
+Return ONLY valid JSON in this exact structure:
+{"lines":["line 1","line 2","line 3"]}
+Preserve Bengali, English, numbers and punctuation as accurately as possible.
+Do not explain anything.`;
 
-            workspaceStage.style.display = 'none';
-            processStage.style.display = 'flex';
-            progressBar.style.width = "10%";
-            processStatusText.innerText = "Loading files...";
+ const url="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key="+encodeURIComponent(apiKey);
 
-            let allPagesData = [];
+ const response=await fetch(url,{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+     contents:[{parts:[
+       {text:prompt},
+       {inline_data:{mime_type:"image/jpeg",data:base64}}
+     ]}],
+     generationConfig:{temperature:0,responseMimeType:"application/json"}
+   })
+ });
 
-            try {
-                // ১. Canvas Load
-                for (let i = 0; i < fileArray.length; i++) {
-                    const fObj = fileArray[i];
-                    if (fObj.type.startsWith('image/')) {
-                        let img = new Image(); img.src = URL.createObjectURL(fObj.file);
-                        await new Promise(resolve => img.onload = resolve);
-                        let canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height;
-                        let ctx = canvas.getContext('2d'); ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, img.width, img.height);
-                        ctx.drawImage(img, 0, 0, img.width, img.height);
-                        allPagesData.push({ canvas, w: img.width, h: img.height, aiLines: [] });
-                    } else if (fObj.type === 'application/pdf') {
-                        let arrayBuffer = await fObj.file.arrayBuffer();
-                        let loadingTask = pdfjs.getDocument({ data: arrayBuffer });
-                        let pdf = await loadingTask.promise;
-                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                            let page = await pdf.getPage(pageNum); let viewport = page.getViewport({ scale: 2.0 }); 
-                            let canvas = document.createElement('canvas'); let ctx = canvas.getContext('2d');
-                            canvas.height = viewport.height; canvas.width = viewport.width;
-                            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-                            allPagesData.push({ canvas, w: viewport.width, h: viewport.height, aiLines: [] });
-                        }
-                    }
-                }
+ const raw=await response.text();
+ let data;
+ try{data=JSON.parse(raw)}catch{throw new Error("Gemini returned invalid response:\\n"+raw.slice(0,1000))}
+ if(!response.ok){
+   const msg=data?.error?.message||`HTTP ${response.status}`;
+   throw new Error(`Gemini API Error (${response.status}): ${msg}`);
+ }
+ const text=data?.candidates?.[0]?.content?.parts?.map(p=>p.text||"").join("")||"";
+ if(!text)throw new Error("Gemini response-এ OCR text পাওয়া যায়নি।");
+ try{
+   const clean=text.replace(/^```json\\s*/,"").replace(/```$/,"").trim();
+   const parsed=JSON.parse(clean);
+   return Array.isArray(parsed.lines)?parsed.lines.filter(x=>String(x).trim()):[];
+ }catch{
+   return text.split("\\n").map(x=>x.trim()).filter(Boolean);
+ }
+}
 
-                progressBar.style.width = "30%";
+function wrapText(text,font,size,maxWidth){
+ const words=text.split(/\\s+/);const lines=[];let line="";
+ for(const word of words){
+   const test=line?line+" "+word:word;
+   if(font.widthOfTextAtSize(test,size)<=maxWidth)line=test;
+   else{if(line)lines.push(line);line=word}
+ }
+ if(line)lines.push(line);return lines;
+}
 
-                // ২. Gemini Scanning
-                if (isOcrEnabled) {
-                    const systemPrompt = "Extract all text exactly as it appears in this image line by line. Do not use markdown. Just provide the raw text lines.";
-                    for (let i = 0; i < allPagesData.length; i++) {
-                        processStatusText.innerText = `Gemini AI Scanning (Page ${i + 1}/${allPagesData.length})...`;
-                        const base64Data = allPagesData[i].canvas.toDataURL('image/jpeg').split(',')[1];
-                        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-                        
-                        const response = await fetch(url, {
-                            method: 'POST', headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }, { inline_data: { mime_type: 'image/jpeg', data: base64Data } }] }] })
-                        });
-                        
-                        if (!response.ok) throw new Error("Gemini API Request Failed");
-                        const data = await response.json();
-                        
-                        if(data.candidates && data.candidates[0].content.parts[0].text) {
-                            const rawText = data.candidates[0].content.parts[0].text;
-                            allPagesData[i].aiLines = rawText.split('\n').filter(line => line.trim().length > 0);
-                        }
-                        progressBar.style.width = (30 + (((i + 1) / allPagesData.length) * 40)) + "%";
-                    }
-                } else {
-                    progressBar.style.width = "70%";
-                }
+async function createPDF(pages,quality,ocr){
+ if(ocr && typeof window.regeneratorRuntime === "undefined"){
+   throw new Error("regeneratorRuntime is not loaded. Refresh the page and make sure Internet access is enabled.");
+ }
+ const {PDFDocument,rgb}=PDFLib;
+ const doc=await PDFDocument.create();
+ let font=null;
+ if(ocr){
+   doc.registerFontkit(window.fontkit);
+   const fontURL="https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSansBengali/NotoSansBengali-Regular.ttf";
+   const fontResponse=await fetch(fontURL,{cache:"force-cache"});
+   if(!fontResponse.ok) throw new Error("Bengali font download failed (HTTP "+fontResponse.status+"). Check internet access and try again.");
+   const bytes=await fontResponse.arrayBuffer();
+   font=await doc.embedFont(bytes,{subset:true});
+ }
+ for(const pageData of pages){
+   const jpg=pageData.canvas.toDataURL("image/jpeg",quality);
+   const image=await doc.embedJpg(jpg);
+   const page=doc.addPage([pageData.w,pageData.h]);
+   page.drawImage(image,{x:0,y:0,width:pageData.w,height:pageData.h});
 
-                // ৩. PDF Creation with Fontkit Support
-                processStatusText.innerText = "Loading Fonts & Generating PDF...";
-                let newPdfDoc = await PDFLib.PDFDocument.create();
-                let font = null;
+   if(ocr&&font&&pageData.lines.length){
+     const size=Math.max(8,Math.min(14,pageData.w/120));
+     const margin=12;
+     const maxWidth=pageData.w-margin*2;
+     let y=pageData.h-size-margin;
+     const lineHeight=size*1.35;
+     for(const raw of pageData.lines){
+       const lines=wrapText(String(raw),font,size,maxWidth);
+       for(const line of lines){
+         if(y<margin)break;
+         try{
+           page.drawText(line,{x:margin,y,size,font,color:rgb(0,0,0),opacity:0});
+         }catch(e){}
+         y-=lineHeight;
+       }
+     }
+   }
+ }
+ return await doc.save({useObjectStreams:true,addDefaultPage:false});
+}
 
-                if (isOcrEnabled) {
-                    // Fontkit রেজিস্টার করা হচ্ছে যাতে বাংলা সাপোর্ট করে
-                    newPdfDoc.registerFontkit(window.fontkit);
-                    try {
-                        processStatusText.innerText = "Downloading Bengali Font...";
-                        const fontUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/notosansbengali/NotoSansBengali-Regular.ttf';
-                        const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
-                        font = await newPdfDoc.embedFont(fontBytes);
-                    } catch(e) {
-                        console.error("Font load fail:", e);
-                        font = await newPdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-                    }
-                }
+async function makePDFWithTarget(pages,targetKB,ocr){
+ let quality=0.82, best=null, bestDiff=Infinity;
+ const attempts=[0.82,0.72,0.62,0.52,0.45,0.38,0.32];
+ for(let i=0;i<attempts.length;i++){
+   quality=attempts[i];
+   setStatus(`Creating PDF — compression pass ${i+1}/${attempts.length}`,70+i*4);
+   const bytes=await createPDF(pages,quality,ocr);
+   const kb=bytes.length/1024;
+   const diff=Math.abs(kb-targetKB);
+   if(diff<bestDiff){best=bytes;bestDiff=diff}
+   if(kb<=targetKB)return bytes;
+ }
+ return best;
+}
 
-                let ratio = targetKB / totalOriginalSizeKB;
-                let quality = Math.max(0.60, Math.min(0.95, ratio));
+$("generate").onclick=async()=>{
+ if(!state.files.length)return;
+ const ocr=$("ocr").checked;
+ if(ocr&&!localStorage.getItem(KEY_NAME)){alert("Gemini API Key দিন।");return}
 
-                for (let item of allPagesData) {
-                    let imgDataUrl = item.canvas.toDataURL('image/jpeg', quality);
-                    let embedImg = await newPdfDoc.embedJpg(imgDataUrl);
-                    let newPage = newPdfDoc.addPage([item.w, item.h]);
-                    newPage.drawImage(embedImg, { x: 0, y: 0, width: item.w, height: item.h });
+ $("workspace").classList.add("hidden");
+ $("progress").style.display="block";
+ $("error").classList.add("hidden");
 
-                    // অদৃশ্য টেক্সটগুলো (বাংলা সহ) পিডিএফ পেজের উপর লাইন বাই লাইন বসিয়ে দেওয়া
-                    if (isOcrEnabled && font && item.aiLines.length > 0) {
-                        let margin = 50;
-                        let lineSpacing = (item.h - (margin * 2)) / item.aiLines.length;
-                        let currentY = item.h - margin; 
-                        
-                        for (let line of item.aiLines) {
-                            try {
-                                newPage.drawText(line, {
-                                    x: margin, y: currentY, size: 14, font: font, opacity: 0 
-                                });
-                                currentY -= lineSpacing;
-                            } catch(e) {
-                                console.error("Text Ignore:", e);
-                            }
-                        }
-                    }
-                }
+ try{
+   const pages=await loadPages();
+   if(!pages.length)throw new Error("কোনো page পাওয়া যায়নি।");
 
-                const finalBytes = await newPdfDoc.save({ useObjectStreams: true });
-                const finalSizeKB = finalBytes.length / 1024;
+   if(ocr){
+     for(let i=0;i<pages.length;i++){
+       setStatus(`Gemini OCR — page ${i+1}/${pages.length}`,30+(i/pages.length)*30);
+       pages[i].lines=await geminiOCR(pages[i].canvas,i,pages.length);
+     }
+   }
 
-                progressBar.style.width = "100%";
-                processStatusText.innerText = "Completed!";
+   const target=Number($("sizeSlider").value);
+   const bytes=await makePDFWithTarget(pages,target,ocr);
+   const kb=bytes.length/1024;
 
-                const blob = new Blob([finalBytes], { type: "application/pdf" });
-                const downloadUrl = URL.createObjectURL(blob);
-                downloadBtn.href = downloadUrl;
-                downloadBtn.download = "Pragati_Pro_Searchable_" + Date.now() + ".pdf";
-                
-                finalStatusText.innerHTML = `Merged <strong>${allPagesData.length} pages</strong> into a <strong>${finalSizeKB.toFixed(2)} KB</strong> PDF.`;
-                setTimeout(() => { processStage.style.display = 'none'; successStage.style.display = 'flex'; }, 800);
-
-            } catch (error) {
-                alert("❌ প্রসেসটি কোনো কারণে বাধা পেয়েছে। ইন্টারনেট কানেকশন চেক করে আবার চেষ্টা করুন।");
-                console.error(error); location.reload();
-            }
-        });
-    </script>
+   const blob=new Blob([bytes],{type:"application/pdf"});
+   const url=URL.createObjectURL(blob);
+   $("download").href=url;
+   $("download").download="Pragati_Searchable_"+Date.now()+".pdf";
+   $("result").innerHTML=`${pages.length} page তৈরি হয়েছে। Final size: <b>${kb.toFixed(1)} KB</b> (Target: ${target} KB)`;
+   $("progress").style.display="none";
+   $("success").style.display="block";
+ }catch(err){
+   console.error(err);
+   $("error").textContent="❌ "+(err?.message||String(err));
+   $("error").classList.remove("hidden");
+   $("status").textContent="Processing failed";
+   $("bar").style.width="100%";
+ }
+};
+</script>
 </body>
 </html>
