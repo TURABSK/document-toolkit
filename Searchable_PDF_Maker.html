@@ -30,7 +30,7 @@
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(4px); /* পেছনের অংশ ঘোলা করবে */
+            backdrop-filter: blur(4px); 
             display: flex; justify-content: center; align-items: center;
             z-index: 1000;
         }
@@ -46,7 +46,6 @@
         
         .hidden { display: none !important; }
         
-        /* অ্যাপের মূল অংশ লগইন না করা পর্যন্ত ব্লার থাকবে */
         .locked-content { filter: blur(8px); pointer-events: none; user-select: none; }
 
         /* --- Main App Styles --- */
@@ -86,6 +85,7 @@
 </head>
 <body>
 
+    <!-- Login Gate -->
     <div id="loginModal" class="modal-overlay">
         <div class="login-box">
             <h2>Pragati AI Tools 🚀</h2>
@@ -95,11 +95,12 @@
             <button onclick="loginAndSaveKey()">লগইন করুন ও সেভ রাখুন</button>
             
             <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 20px;">
-                🔒 <b>১০০% সুরক্ষিত:</b> আপনার Key সরাসরি আপনার ব্রাউজারে সেভ থাকে। আমাদের কোনো ডেটাবেস বা সার্ভার নেই।
+                🔒 <b>১০০% সুরক্ষিত:</b> আপনার Key সরাসরি আপনার ব্রাউজারে সেভ থাকে।
             </p>
         </div>
     </div>
 
+    <!-- Main App Content -->
     <div id="appContainer" class="container locked-content">
         <div class="header">
             <h1>🧠 AI Smart Document Scanner</h1>
@@ -123,60 +124,53 @@
         let base64Image = "";
         const storageKeyName = "pragati_gemini_key";
 
-        // --- Authentication Logic (Login & Logout) ---
-        
-        // পেজ লোড হওয়ার সাথে সাথে চেক করবে আগে থেকে Key সেভ করা আছে কিনা
+        // Authentication Logic
         window.onload = function() {
             const savedKey = localStorage.getItem(storageKeyName);
             if (savedKey) {
-                // Key থাকলে মডাল লুকিয়ে অ্যাপ খুলে দেবে
                 document.getElementById('loginModal').classList.add('hidden');
                 document.getElementById('appContainer').classList.remove('locked-content');
             }
         };
 
-        // লগইন বাটনে ক্লিক করলে কাজ করবে
         function loginAndSaveKey() {
             const inputKey = document.getElementById('loginApiKey').value.trim();
             if (inputKey === "") {
                 alert("দয়া করে একটি সঠিক API Key দিন!");
                 return;
             }
-            
-            // Key ব্রাউজারে সেভ করা হচ্ছে
             localStorage.setItem(storageKeyName, inputKey);
-            
-            // মডাল লুকিয়ে অ্যাপ আনলক করা হচ্ছে
             document.getElementById('loginModal').classList.add('hidden');
             document.getElementById('appContainer').classList.remove('locked-content');
         }
 
-        // লগআউট ফাংশন
         function logoutUser() {
             if(confirm("আপনি কি নিশ্চিত যে আপনার API Key ডিলিট করে লগআউট করতে চান?")) {
-                localStorage.removeItem(storageKeyName); // Key ডিলিট
-                location.reload(); // পেজ রিলোড করে আবার লক করে দেবে
+                localStorage.removeItem(storageKeyName);
+                location.reload();
             }
         }
 
-        // --- App Logic (Image Upload & API Call) ---
-
+        // Image Upload (Updated Base64 Logic)
         document.getElementById('imageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(readerEvent) {
-                    base64Image = btoa(new Uint8Array(readerEvent.target.result).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+                    // সরাসরি DataURL নেওয়া হলো এবং কমার পরের অংশ স্প্লিট করা হলো
+                    const dataUrl = readerEvent.target.result;
+                    base64Image = dataUrl.split(',')[1];
+                    
                     const imgPreview = document.getElementById('imagePreview');
-                    imgPreview.src = `data:${file.type};base64,${base64Image}`;
+                    imgPreview.src = dataUrl; // DataURL সরাসরি প্রিভিউতে ব্যবহার করা যায়
                     imgPreview.style.display = 'block';
                 };
-                reader.readAsArrayBuffer(file);
+                reader.readAsDataURL(file); // ArrayBuffer এর বদলে DataURL
             }
         });
 
+        // API Call (Updated Model Name)
         async function extractText() {
-            // প্রতিবার কাজের সময় লোকাল স্টোরেজ থেকে Key টেনে নেবে
             const apiKey = localStorage.getItem(storageKeyName); 
             
             if (!apiKey) {
@@ -200,7 +194,9 @@
             loader.style.display = 'block';
 
             const systemPrompt = "Extract all text exactly as it appears in this image.";
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            
+            // মডেল আপডেট করা হলো: gemini-2.0-flash
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             try {
                 const response = await fetch(url, {
@@ -216,7 +212,10 @@
                     })
                 });
 
-                if (!response.ok) throw new Error("API Key ভুল অথবা ইন্টারনেটে সমস্যা।");
+                if (!response.ok) {
+                    const errorDetails = await response.text();
+                    throw new Error("API Key ভুল অথবা ইন্টারনেটে সমস্যা। " + errorDetails);
+                }
                 
                 const data = await response.json();
                 outputContent.innerText = data.candidates[0].content.parts[0].text;
