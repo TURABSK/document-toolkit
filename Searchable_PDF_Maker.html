@@ -236,7 +236,6 @@ async function geminiOCR(canvas){
  Example: [{"text": "নূরজাহান", "box": [120, 50, 150, 200]}]
  Do not add any markdown formatting or explanations.`;
 
- // সঠিকভাবে gemini-3.6-flash আপডেট করা হলো
  const url="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key="+encodeURIComponent(apiKey);
 
  const response=await fetch(url,{
@@ -346,6 +345,12 @@ $("generate").onclick=async()=>{
      for(let i=0;i<pages.length;i++){
        setStatus(`AI Layout Scanning — page ${i+1}/${pages.length}`,30+(i/pages.length)*40);
        pages[i].blocks=await geminiOCR(pages[i].canvas);
+       
+       // Anti-429 Rate Limit Protection: 4 সেকেন্ডের বিরতি (শেষ পেজ বাদে)
+       if(i < pages.length - 1) {
+           setStatus(`API Cooldown: Rate limit protection (${i+1}/${pages.length})...`, 30+(i/pages.length)*40);
+           await new Promise(resolve => setTimeout(resolve, 4000));
+       }
      }
    }
 
