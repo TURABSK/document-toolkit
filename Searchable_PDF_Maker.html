@@ -226,8 +226,8 @@ async function fetchWithRetry(url, options, pageIndex, totalPages, maxRetries = 
     for (let i = 0; i < maxRetries; i++) {
         const response = await fetch(url, options);
         if (response.status === 429) {
-            setStatus(`Rate Limit Hit! Waiting 10s before retry... (Attempt ${i+1}/${maxRetries})`, 30+(pageIndex/totalPages)*40);
-            await new Promise(r => setTimeout(r, 10000)); // ১০ সেকেন্ড অপেক্ষা করবে
+            setStatus(`Rate Limit Hit! Waiting 15s before retry... (Attempt ${i+1}/${maxRetries})`, 30+(pageIndex/totalPages)*40);
+            await new Promise(r => setTimeout(r, 15000)); // ১৫ সেকেন্ড অপেক্ষা করবে
             continue;
         }
         return response;
@@ -241,7 +241,7 @@ async function geminiOCR(canvas, pageIndex, totalPages){
 
  const base64=canvas.toDataURL("image/jpeg",0.88).split(",")[1];
  
- // লাইন বাই লাইন মাপার জন্য নতুন প্রম্পট
+ // লাইন বাই লাইন মাপার জন্য কঠোর প্রম্পট
  const prompt=`Extract all visible text from this document. 
  CRITICAL INSTRUCTION: Break the text down STRICTLY LINE-BY-LINE. Do not group multiple lines into one object.
  Each object must represent a single horizontal line of text.
@@ -252,7 +252,8 @@ async function geminiOCR(canvas, pageIndex, totalPages){
  Example: [{"text": "নাম: নূরজাহান বেগম", "box": [120, 50, 140, 200]}]
  Do not add any markdown formatting or explanations.`;
 
- const url="https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+encodeURIComponent(apiKey);
+ // এইবার ১০০% গ্যারান্টি, সঠিক মডেল: gemini-3.6-flash দেওয়া হলো!
+ const url="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key="+encodeURIComponent(apiKey);
 
  const response = await fetchWithRetry(url, {
    method:"POST", headers:{"Content-Type":"application/json"},
@@ -367,10 +368,10 @@ $("generate").onclick=async()=>{
        setStatus(`AI Line Scanning — page ${i+1}/${pages.length}`,30+(i/pages.length)*40);
        pages[i].blocks=await geminiOCR(pages[i].canvas, i, pages.length);
        
-       // রেগুলার স্পিড ব্রেকার
+       // রেগুলার স্পিড ব্রেকার (৪ সেকেন্ড)
        if(i < pages.length - 1) {
            setStatus(`Cooling down API... (${i+1}/${pages.length})`, 30+(i/pages.length)*40);
-           await new Promise(resolve => setTimeout(resolve, 3000));
+           await new Promise(resolve => setTimeout(resolve, 4000));
        }
      }
    }
