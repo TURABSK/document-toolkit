@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Pragati Pro Searchable PDF Maker</title>
 
-<!-- শক্তিশালী jsPDF ইঞ্জিন -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
@@ -65,7 +64,7 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
 
 <div id="title" class="title">
   <h1>Upload Files</h1>
-  <p>Images/PDF merge, compression এবং 100% Crash-Proof Searchable PDF</p>
+  <p>Universal Layout Scanner - ভোটার লিস্ট ও মাল্টি-কলাম ডকুমেন্টের জন্য</p>
 </div>
 
 <div id="upload" class="upload card">
@@ -97,8 +96,8 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
     <div class="group">
       <div class="toggle">
         <input id="ocr" type="checkbox" checked>
-        <div><b>🔎 Make Searchable with Gemini</b><br>
-        <small>১০০% ক্র্যাশ-প্রুফ বাংলা OCR ইঞ্জিন।</small></div>
+        <div><b>🔎 Make Searchable with AI</b><br>
+        <small>অ্যাডভান্সড কলাম ও লেআউট ডিটেকশন।</small></div>
       </div>
     </div>
 
@@ -124,7 +123,6 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
 </div>
 
 <script>
-// PDF.js worker setup
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 const KEY_NAME="pragati_gemini_key";
@@ -132,7 +130,6 @@ const state={files:[],pages:[],originalKB:0};
 const $=id=>document.getElementById(id);
 const setStatus=(t,p)=>{$("status").textContent=t;if(p!==undefined)$("bar").style.width=p+"%"};
 
-// Login Check
 window.addEventListener("load",()=>{
   if(localStorage.getItem(KEY_NAME)) $("loginModal").classList.add("hidden");
 });
@@ -145,7 +142,6 @@ function saveKey(){
 }
 function clearKey(){localStorage.removeItem(KEY_NAME);location.reload()}
 
-// UI Event Listeners
 $("sizeSlider").oninput=e=>$("sizeText").textContent=e.target.value;
 $("fileInput").onchange=e=>addFiles([...e.target.files]);
 $("moreInput").onchange=e=>addFiles([...e.target.files]);
@@ -161,9 +157,7 @@ new Sortable($("grid"),{
 
 async function addFiles(files){
   if(!files.length)return;
-  $("upload").classList.add("hidden");
-  $("title").classList.add("hidden");
-  $("workspace").classList.remove("hidden");
+  $("upload").classList.add("hidden"); $("title").classList.add("hidden"); $("workspace").classList.remove("hidden");
 
   for(const file of files){
     if(!["application/pdf","image/png","image/jpeg","image/webp"].includes(file.type)) continue;
@@ -181,16 +175,14 @@ async function addFiles(files){
 }
 
 function addGrid(obj){
-  const div=document.createElement("div");
-  div.className="item";div.dataset.id=obj.id;
+  const div=document.createElement("div"); div.className="item"; div.dataset.id=obj.id;
   const preview=obj.type.startsWith("image/") ? `<img src="${URL.createObjectURL(obj.file)}">` : `<div style="font-size:55px">📑</div>`;
   div.innerHTML=`<div class="num"></div><button class="remove">✕</button><div class="preview">${preview}</div><div class="name" title="${obj.name}">${obj.name}</div>`;
   div.querySelector(".remove").onclick=()=>{
-    state.files=state.files.filter(x=>x.id!==obj.id);
-    div.remove();renumber();
+    state.files=state.files.filter(x=>x.id!==obj.id); div.remove(); renumber();
     if(!state.files.length){$("workspace").classList.add("hidden");$("upload").classList.remove("hidden");$("title").classList.remove("hidden")}
   };
-  $("grid").appendChild(div);renumber();
+  $("grid").appendChild(div); renumber();
 }
 function renumber(){[...$("grid").children].forEach((x,i)=>x.querySelector(".num").textContent=i+1)}
 
@@ -211,7 +203,7 @@ async function loadPages(){
    setStatus(`Loading ${i+1}/${state.files.length}: ${f.name}`,5+Math.round(i/state.files.length*20));
    if(f.type.startsWith("image/")){
      const c=await imageToCanvas(f.file,1800);
-     pages.push({canvas:c,w:c.width,h:c.height,lines:[]});
+     pages.push({canvas:c,w:c.width,h:c.height,blocks:[]});
    }else{
      const buf=await f.file.arrayBuffer();
      const pdf=await pdfjsLib.getDocument({data:buf}).promise;
@@ -222,7 +214,7 @@ async function loadPages(){
        const vp=page.getViewport({scale});
        const c=document.createElement("canvas");c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
        await page.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;
-       pages.push({canvas:c,w:c.width,h:c.height,lines:[]});
+       pages.push({canvas:c,w:c.width,h:c.height,blocks:[]});
      }
    }
  }
@@ -234,10 +226,19 @@ async function geminiOCR(canvas){
  if(!apiKey)throw new Error("Gemini API Key পাওয়া যায়নি।");
 
  const base64=canvas.toDataURL("image/jpeg",0.88).split(",")[1];
- const prompt=`Extract all visible text line by line. Return ONLY valid JSON: {"lines":["line 1","line 2"]}`;
  
- // মডেল আপডেট করা হয়েছে: gemini-3.6-flash
- const url="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key="+encodeURIComponent(apiKey);
+ // মেইন ম্যাজিক: লেআউট এবং কোঅর্ডিনেট ডিটেকশন প্রম্পট
+ const prompt=`Extract all visible text from this document. 
+ Maintain the exact layout, especially for multi-column documents like voter lists.
+ Return ONLY a valid JSON array of objects. 
+ Each object must have two keys:
+ "text": "the exact text string",
+ "box": [ymin, xmin, ymax, xmax] (these are the bounding box coordinates scaled from 0 to 1000 representing the exact location of the text in the image).
+ Example: [{"text": "নূরজাহান", "box": [120, 50, 150, 200]}]
+ Do not add any markdown formatting or explanations.`;
+
+ // স্টেবল মডেল gemini-1.5-flash সেট করা হলো
+ const url="https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+encodeURIComponent(apiKey);
 
  const response=await fetch(url,{
    method:"POST", headers:{"Content-Type":"application/json"},
@@ -245,29 +246,30 @@ async function geminiOCR(canvas){
  });
 
  const raw=await response.text();
- if(!response.ok) throw new Error(`Gemini Error: ${raw.slice(0,100)}`);
+ if(!response.ok) throw new Error(`Gemini Error: ${raw.slice(0,150)}`);
+ 
  let data; try{data=JSON.parse(raw)}catch{return []}
  const text=data?.candidates?.[0]?.content?.parts?.map(p=>p.text||"").join("")||"";
+ 
  try{
    const clean=text.replace(/^```json\s*/,"").replace(/```$/,"").trim();
    const parsed=JSON.parse(clean);
-   return Array.isArray(parsed.lines)?parsed.lines.filter(x=>String(x).trim()):[];
- }catch{ return text.split("\n").map(x=>x.trim()).filter(Boolean); }
+   return Array.isArray(parsed) ? parsed : [];
+ }catch{ 
+   return []; 
+ }
 }
 
-// নতুন jsPDF ইঞ্জিন ব্যবহার করে ক্র্যাশ-প্রুফ পিডিএফ জেনারেশন
 async function createPDF(pages, quality, ocr) {
   const { jsPDF } = window.jspdf;
   const first = pages[0];
   
-  // প্রথম পেজের মাপে পিডিএফ শুরু
   const doc = new jsPDF({
       orientation: first.w > first.h ? 'landscape' : 'portrait',
       unit: 'px',
       format: [first.w, first.h]
   });
 
-  // OCR চালু থাকলে বাংলা ফন্ট লোড করা
   if (ocr) {
       setStatus("Downloading Bengali Font for OCR...", 80);
       const fontURL = "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansbengali/NotoSansBengali-Regular.ttf";
@@ -276,9 +278,7 @@ async function createPDF(pages, quality, ocr) {
       
       let binary = '';
       const bytes = new Uint8Array(fontBuffer);
-      for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
-      }
+      for (let i = 0; i < bytes.byteLength; i++) { binary += String.fromCharCode(bytes[i]); }
       doc.addFileToVFS("Bengali.ttf", btoa(binary));
       doc.addFont("Bengali.ttf", "Bengali", "normal");
   }
@@ -287,25 +287,31 @@ async function createPDF(pages, quality, ocr) {
       const pageData = pages[i];
       if (i > 0) doc.addPage([pageData.w, pageData.h], pageData.w > pageData.h ? 'landscape' : 'portrait');
 
-      // ট্রিক: প্রথমে টেক্সট ড্র করা হচ্ছে (যাতে ছবির নিচে চাপা পড়ে যায়)
-      if (ocr && pageData.lines.length > 0) {
+      // লেআউট অনুযায়ী ঠিক জায়গায় টেক্সট বসানো
+      if (ocr && pageData.blocks && pageData.blocks.length > 0) {
           doc.setFont("Bengali");
-          doc.setTextColor(245, 245, 245); // অত্যন্ত হালকা কালার
+          doc.setTextColor(245, 245, 245); // প্রায় অদৃশ্য
           
-          const margin = 20;
-          const fontSize = Math.max(12, pageData.w / 60);
-          doc.setFontSize(fontSize);
-          const lineHeight = fontSize * 1.5;
-          let y = margin + fontSize;
-
-          for (const line of pageData.lines) {
-              if (y > pageData.h - margin) break;
-              try { doc.text(line, margin, y); } catch(e) {}
-              y += lineHeight;
+          for (const block of pageData.blocks) {
+              try {
+                  const box = block.box;
+                  if(!box || box.length !== 4) continue;
+                  
+                  // 0-1000 স্কেল থেকে অরিজিনাল মাপে রূপান্তর
+                  const yMin = (box[0] / 1000) * pageData.h;
+                  const xMin = (box[1] / 1000) * pageData.w;
+                  const yMax = (box[2] / 1000) * pageData.h;
+                  
+                  let fontSize = Math.max(10, (yMax - yMin) * 0.85); // উচ্চতা অনুযায়ী ফন্ট সাইজ
+                  doc.setFontSize(fontSize);
+                  
+                  let yPos = yMin + fontSize * 0.8; // Baseline ফিক্স
+                  
+                  doc.text(block.text, xMin, yPos);
+              } catch(e) {}
           }
       }
 
-      // টেক্সট ড্র করার পর ছবিটিকে ঠিক তার ওপর বসানো হচ্ছে (Text Behind Image)
       const imgData = pageData.canvas.toDataURL('image/jpeg', quality);
       doc.addImage(imgData, 'JPEG', 0, 0, pageData.w, pageData.h);
   }
@@ -315,7 +321,7 @@ async function createPDF(pages, quality, ocr) {
 
 async function makePDFWithTarget(pages, targetKB, ocr) {
   let quality = 0.85, best = null, bestDiff = Infinity;
-  const attempts = [0.85, 0.70, 0.50, 0.35]; // দ্রুত কম্প্রেস করার জন্য ৪টি ধাপ
+  const attempts = [0.85, 0.70, 0.50, 0.35]; 
   for (let i = 0; i < attempts.length; i++) {
     quality = attempts[i];
     setStatus(`Creating PDF — pass ${i + 1}/${attempts.length}`, 85 + i * 4);
@@ -341,8 +347,8 @@ $("generate").onclick=async()=>{
 
    if(ocr){
      for(let i=0;i<pages.length;i++){
-       setStatus(`Gemini OCR — page ${i+1}/${pages.length}`,30+(i/pages.length)*40);
-       pages[i].lines=await geminiOCR(pages[i].canvas);
+       setStatus(`AI Layout Scanning — page ${i+1}/${pages.length}`,30+(i/pages.length)*40);
+       pages[i].blocks=await geminiOCR(pages[i].canvas);
      }
    }
 
@@ -352,7 +358,7 @@ $("generate").onclick=async()=>{
 
    const blob=new Blob([bytes],{type:"application/pdf"});
    const url=URL.createObjectURL(blob);
-   $("download").href=url; $("download").download="Pragati_Searchable_"+Date.now()+".pdf";
+   $("download").href=url; $("download").download="Pragati_Smart_PDF_" + Date.now() + ".pdf";
    $("result").innerHTML=`${pages.length} page তৈরি হয়েছে। Final size: <b>${kb.toFixed(1)} KB</b> (Target: ${target} KB)`;
    $("progress").style.display="none"; $("success").style.display="block";
  }catch(err){
