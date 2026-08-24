@@ -45,6 +45,19 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
 .download{display:inline-block;background:#11998e;color:#fff;text-decoration:none;margin-top:15px}
 .error{background:#fff5f5;color:#c53030;border:1px solid #feb2b2;border-radius:10px;padding:12px;margin-top:15px;text-align:left;white-space:pre-wrap;font-size:13px}
 @media(max-width:850px){.workspace{grid-template-columns:1fr}.sidebar{width:100%}}
+
+.toolgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;margin-top:10px}
+.toolcard{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px 20px;text-align:left;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
+.toolcard:hover{transform:translateY(-3px);box-shadow:0 14px 30px #00000014;border-color:#8fd3ff}
+.toolcard .ticon{font-size:32px;display:block;margin-bottom:14px}
+.toolcard h4{margin:0 0 6px;font-size:16px}
+.toolcard p{margin:0;font-size:12.5px;color:#718096;line-height:1.5}
+.toolcard.disabled{cursor:not-allowed;opacity:.55}
+.toolcard.disabled:hover{transform:none;box-shadow:none;border-color:#e2e8f0}
+.soon{position:absolute;top:14px;right:14px;background:#edf2f7;color:#4a5568;font-size:10px;font-weight:700;padding:4px 9px;border-radius:20px}
+.active-badge{position:absolute;top:14px;right:14px;background:linear-gradient(135deg,#4facfe,#00c6ff);color:#fff;font-size:10px;font-weight:700;padding:4px 9px;border-radius:20px}
+.backbtn{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:#3182ce;font-weight:700;font-size:14px;padding:0 0 18px;cursor:pointer}
+.backbtn:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -59,11 +72,59 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
   </div>
 </div>
 
-<div class="nav"><h2>📄 Pragati Pro Searchable PDF Maker</h2></div>
+<div class="nav"><h2>📄 Pragati Pro Tools</h2></div>
 <div class="main">
 
+<div id="dashboard">
+  <div id="dashTitle" class="title">
+    <h1>Pragati Pro Tools</h1>
+    <p>আপনার সব PDF দরকার, এক জায়গায়</p>
+  </div>
+  <div class="toolgrid">
+    <div class="toolcard" id="tool-ocr" onclick="openTool('ocr')">
+      <span class="active-badge">চালু আছে</span>
+      <span class="ticon">🔎</span>
+      <h4>OCR PDF</h4>
+      <p>স্ক্যান করা ছবি বা PDF-কে AI দিয়ে সার্চযোগ্য ও সিলেক্টযোগ্য PDF-এ রূপান্তর করুন।</p>
+    </div>
+    <div class="toolcard disabled">
+      <span class="soon">শীঘ্রই আসছে</span>
+      <span class="ticon">🔗</span>
+      <h4>Merge PDF</h4>
+      <p>একাধিক PDF ফাইলকে একটি ফাইলে জোড়া লাগান।</p>
+    </div>
+    <div class="toolcard disabled">
+      <span class="soon">শীঘ্রই আসছে</span>
+      <span class="ticon">✂️</span>
+      <h4>Split PDF</h4>
+      <p>একটি PDF থেকে নির্দিষ্ট পেজ আলাদা করে নিন।</p>
+    </div>
+    <div class="toolcard disabled">
+      <span class="soon">শীঘ্রই আসছে</span>
+      <span class="ticon">🗜️</span>
+      <h4>Compress PDF</h4>
+      <p>মান ঠিক রেখে PDF-এর সাইজ কমান।</p>
+    </div>
+    <div class="toolcard disabled">
+      <span class="soon">শীঘ্রই আসছে</span>
+      <span class="ticon">📝</span>
+      <h4>PDF → Word</h4>
+      <p>PDF-কে এডিটযোগ্য Word ফাইলে রূপান্তর করুন।</p>
+    </div>
+    <div class="toolcard disabled">
+      <span class="soon">শীঘ্রই আসছে</span>
+      <span class="ticon">🖼️</span>
+      <h4>Image → PDF</h4>
+      <p>JPG/PNG ছবিকে PDF-এ রূপান্তর করুন।</p>
+    </div>
+  </div>
+</div>
+
+<div id="ocrTool" class="hidden">
+<button class="backbtn" onclick="goHome()">← সব টুলে ফিরে যান</button>
+
 <div id="title" class="title">
-  <h1>Upload Files</h1>
+  <h1>OCR PDF — Upload Files</h1>
   <p>Universal Layout Scanner - ILovePDF-এর মতো নিখুঁত সিলেকশন!</p>
 </div>
 
@@ -122,6 +183,8 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
 
 </div>
 
+</div>
+
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
@@ -129,6 +192,17 @@ const KEY_NAME="pragati_gemini_key";
 const state={files:[],pages:[],originalKB:0};
 const $=id=>document.getElementById(id);
 const setStatus=(t,p)=>{$("status").textContent=t;if(p!==undefined)$("bar").style.width=p+"%"};
+
+function openTool(name){
+  if(name==="ocr"){
+    $("dashboard").classList.add("hidden");
+    $("ocrTool").classList.remove("hidden");
+  }
+}
+function goHome(){
+  $("ocrTool").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+}
 
 window.addEventListener("load",()=>{
   if(localStorage.getItem(KEY_NAME)) $("loginModal").classList.add("hidden");
@@ -186,7 +260,7 @@ function addGrid(obj){
 }
 function renumber(){[...$("grid").children].forEach((x,i)=>x.querySelector(".num").textContent=i+1)}
 
-async function imageToCanvas(file,maxDim=1800){
+async function imageToCanvas(file,maxDim=2200){
  const url=URL.createObjectURL(file);
  const img=await new Promise((resolve,reject)=>{ const i=new Image();i.onload=()=>resolve(i);i.onerror=reject;i.src=url; });
  let w=img.naturalWidth,h=img.naturalHeight;
@@ -202,7 +276,7 @@ async function loadPages(){
    const f=state.files[i];
    setStatus(`Loading ${i+1}/${state.files.length}: ${f.name}`,5+Math.round(i/state.files.length*20));
    if(f.type.startsWith("image/")){
-     const c=await imageToCanvas(f.file,1800);
+     const c=await imageToCanvas(f.file,2200);
      pages.push({canvas:c,w:c.width,h:c.height,blocks:[]});
    }else{
      const buf=await f.file.arrayBuffer();
@@ -210,7 +284,7 @@ async function loadPages(){
      for(let p=1;p<=pdf.numPages;p++){
        const page=await pdf.getPage(p);
        const base=page.getViewport({scale:1});
-       const scale=Math.min(2,1800/Math.max(base.width,base.height));
+       const scale=Math.min(2.4,2200/Math.max(base.width,base.height));
        const vp=page.getViewport({scale});
        const c=document.createElement("canvas");c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
        await page.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;
@@ -220,6 +294,43 @@ async function loadPages(){
  }
  return pages;
 }
+
+// OCR-এর জন্য আলাদাভাবে contrast/sharpness বাড়ানো একটা কপি বানানো হয়
+// (চূড়ান্ত PDF-এ বসা ছবিতে এই ফিল্টার প্রভাব ফেলে না, শুধু Gemini-কে পড়তে সাহায্য করে)
+function enhanceForOCR(canvas){
+  const c=document.createElement("canvas"); c.width=canvas.width; c.height=canvas.height;
+  const ctx=c.getContext("2d");
+  ctx.filter="contrast(1.18) brightness(1.04) saturate(0.9)";
+  ctx.drawImage(canvas,0,0);
+  return c;
+}
+
+function canvasSlice(canvas, fromRatio, toRatio){
+  const w=canvas.width, h=canvas.height;
+  const sy=Math.round(fromRatio*h);
+  const sh=Math.max(1, Math.round((toRatio-fromRatio)*h));
+  const c=document.createElement("canvas"); c.width=w; c.height=sh;
+  c.getContext("2d").drawImage(canvas,0,sy,w,sh,0,0,w,sh);
+  return c;
+}
+
+// লাইন বাই লাইন মাপার জন্য কঠোর, precision-focused প্রম্পট
+const OCR_PROMPT = `You are a high-precision OCR engine for Bengali (Bangla) and English mixed documents.
+Extract EVERY visible line of text from this document image, exactly as written.
+
+STRICT RULES:
+1. Transcribe text EXACTLY as it appears — do not autocorrect spelling, do not translate, do not paraphrase, do not summarize, do not skip repeated or noisy text.
+2. Break the text down STRICTLY LINE-BY-LINE. Do not merge multiple lines into one object, and do not split a single line into multiple objects.
+3. Preserve original numerals (Bengali ০-৯ or English 0-9) exactly as shown — do not convert between them.
+4. If the document has multiple columns or tables, read in correct natural reading order: top-to-bottom within each column, left column before right column.
+5. Include headers, footers, stamps, printed captions near signatures, and small print — skip only pure decorative graphics with no text.
+6. If a line is partially cut off, blurry, or uncertain, still transcribe your best reading rather than omitting it.
+
+Return ONLY a valid JSON array of objects, nothing else (no markdown fences, no explanation).
+Each object must have exactly two keys:
+"text": the exact text string of that single line (no embedded newlines),
+"box": [ymin, xmin, ymax, xmax] — bounding box coordinates scaled 0 to 1000 relative to the image.
+Example: [{"text": "নাম: নূরজাহান বেগম", "box": [120, 50, 140, 200]}]`;
 
 // 429 Quota Error থেকে বাঁচতে স্মার্ট Auto-Retry সিস্টেম
 async function fetchWithRetry(url, options, pageIndex, totalPages, maxRetries = 3) {
@@ -235,30 +346,20 @@ async function fetchWithRetry(url, options, pageIndex, totalPages, maxRetries = 
     throw new Error("Google API limit exceeded. Please try again after a few minutes or use a new API key.");
 }
 
-async function geminiOCR(canvas, pageIndex, totalPages){
+// একটা ছবির slice-এর উপর একবার Gemini OCR কল — {blocks, truncated} রিটার্ন করে
+async function geminiOCRRaw(canvas, pageIndex, totalPages){
  const apiKey=localStorage.getItem(KEY_NAME);
- if(!apiKey)throw new Error("Gemini API Key পাওয়া যায়নি।");
+ if(!apiKey)throw new Error("Gemini API Key পাওয়া যায়নি।");
 
- const base64=canvas.toDataURL("image/jpeg",0.88).split(",")[1];
- 
- // লাইন বাই লাইন মাপার জন্য কঠোর প্রম্পট
- const prompt=`Extract all visible text from this document. 
- CRITICAL INSTRUCTION: Break the text down STRICTLY LINE-BY-LINE. Do not group multiple lines into one object.
- Each object must represent a single horizontal line of text.
- Return ONLY a valid JSON array of objects. 
- Each object must have two keys:
- "text": "the exact text string of that single line (no newlines)",
- "box": [ymin, xmin, ymax, xmax] (bounding box coordinates scaled from 0 to 1000).
- Example: [{"text": "নাম: নূরজাহান বেগম", "box": [120, 50, 140, 200]}]
- Do not add any markdown formatting or explanations.`;
+ const ocrCanvas=enhanceForOCR(canvas);
+ const base64=ocrCanvas.toDataURL("image/jpeg",0.95).split(",")[1];
 
- // এইবার ১০০% গ্যারান্টি, সঠিক মডেল: gemini-3.6-flash দেওয়া হলো!
  const url="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key="+encodeURIComponent(apiKey);
 
  const response = await fetchWithRetry(url, {
    method:"POST", headers:{"Content-Type":"application/json"},
    body:JSON.stringify({
-     contents:[{parts:[{text:prompt},{inline_data:{mime_type:"image/jpeg",data:base64}}]}],
+     contents:[{parts:[{text:OCR_PROMPT},{inline_data:{mime_type:"image/jpeg",data:base64}}]}],
      generationConfig:{
        temperature:0,
        maxOutputTokens:8192,
@@ -270,32 +371,70 @@ async function geminiOCR(canvas, pageIndex, totalPages){
  const raw=await response.text();
  if(!response.ok) throw new Error(`Gemini Error: ${raw.slice(0,150)}`);
 
- let data; try{data=JSON.parse(raw)}catch{ console.warn("Gemini raw response parse failed", raw.slice(0,300)); return []; }
+ let data; try{data=JSON.parse(raw)}catch{ console.warn("Gemini raw response parse failed", raw.slice(0,300)); return {blocks:[], truncated:false}; }
 
  const candidate=data?.candidates?.[0];
- const finishReason=candidate?.finishReason;
- if(finishReason==="MAX_TOKENS") console.warn(`Page ${pageIndex+1}: Gemini output was truncated (MAX_TOKENS) — some lines may be missing.`);
+ const truncated = candidate?.finishReason==="MAX_TOKENS";
 
  const text=candidate?.content?.parts?.map(p=>p.text||"").join("")||"";
 
- // responseMimeType:application/json usually returns clean JSON, but keep a
- // fallback that extracts the first [...] block in case of stray text/fences.
  let jsonSlice=text.trim();
  const first=jsonSlice.indexOf("["), last=jsonSlice.lastIndexOf("]");
  if(first!==-1 && last!==-1 && last>first) jsonSlice=jsonSlice.slice(first,last+1);
 
  try{
    const parsed=JSON.parse(jsonSlice);
-   if(!Array.isArray(parsed)) return [];
-   // Normalize to NFC so combining Bengali matras/conjuncts match consistently
-   // when the resulting PDF's text layer is searched.
-   return parsed
-     .filter(b=>b && typeof b.text==="string" && Array.isArray(b.box))
+   if(!Array.isArray(parsed)) return {blocks:[], truncated};
+   const blocks=parsed
+     .filter(b=>b && typeof b.text==="string" && Array.isArray(b.box) && b.box.length===4)
      .map(b=>({...b, text:b.text.normalize("NFC")}));
+   return {blocks, truncated};
  }catch(e){
    console.warn(`Page ${pageIndex+1}: could not parse Gemini JSON`, text.slice(0,300));
-   return [];
+   return {blocks:[], truncated};
  }
+}
+
+// দুটো box কে "একই লাইন" ধরার জন্য কাছাকাছি text+position মিলিয়ে দেখা (overlap থেকে duplicate সরাতে)
+function dedupeBlocks(blocks){
+  const seen=[];
+  const out=[];
+  for(const b of blocks){
+    const key=b.text.trim();
+    const dup=seen.find(s=>s.text===key && Math.abs(s.y-b.box[0])<25);
+    if(dup) continue;
+    seen.push({text:key, y:b.box[0]});
+    out.push(b);
+  }
+  return out;
+}
+
+// পুরো পেজ OCR করে; আউটপুট token limit-এ কাটা পড়লে (MAX_TOKENS) পেজটাকে
+// উপরে-নিচে দুই ভাগে ভেঙে আবার চেষ্টা করে, যাতে ঘন লেখার পেজেও কোনো লাইন বাদ না যায়
+async function geminiOCR(canvas, pageIndex, totalPages, yFrom=0, yTo=1, depth=0){
+  const slice = (yFrom===0 && yTo===1) ? canvas : canvasSlice(canvas, yFrom, yTo);
+  const {blocks, truncated} = await geminiOCRRaw(slice, pageIndex, totalPages);
+
+  const remapped = blocks.map(b=>({
+    text:b.text,
+    box:[
+      yFrom*1000 + b.box[0]*(yTo-yFrom),
+      b.box[1],
+      yFrom*1000 + b.box[2]*(yTo-yFrom),
+      b.box[3]
+    ]
+  }));
+
+  if(truncated && depth<2 && (yTo-yFrom)>0.15){
+    console.warn(`Page ${pageIndex+1}: output truncated — splitting slice [${yFrom.toFixed(2)}-${yTo.toFixed(2)}] and retrying.`);
+    const mid=(yFrom+yTo)/2;
+    const overlap=0.02; // সামান্য overlap রাখা হয় যাতে সীমানার লাইন বাদ না যায়
+    const topHalf=await geminiOCR(canvas, pageIndex, totalPages, yFrom, Math.min(1,mid+overlap), depth+1);
+    const botHalf=await geminiOCR(canvas, pageIndex, totalPages, Math.max(0,mid-overlap), yTo, depth+1);
+    return dedupeBlocks([...topHalf, ...botHalf]);
+  }
+
+  return remapped;
 }
 
 async function createPDF(pages, quality, ocr) {
