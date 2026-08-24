@@ -64,7 +64,7 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
 
 <div id="title" class="title">
   <h1>Upload Files</h1>
-  <p>Universal Layout Scanner - ভোটার লিস্ট ও মাল্টি-কলাম ডকুমেন্টের জন্য</p>
+  <p>Universal Layout Scanner - ILovePDF-এর মতো নিখুঁত সিলেকশন!</p>
 </div>
 
 <div id="upload" class="upload card">
@@ -97,7 +97,7 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
       <div class="toggle">
         <input id="ocr" type="checkbox" checked>
         <div><b>🔎 Make Searchable with AI</b><br>
-        <small>অ্যাডভান্সড কলাম ও লেআউট ডিটেকশন।</small></div>
+        <small>১০০% অদৃশ্য ও নিখুঁত লাইন-সিলেকশন।</small></div>
       </div>
     </div>
 
@@ -221,27 +221,43 @@ async function loadPages(){
  return pages;
 }
 
-async function geminiOCR(canvas){
+// 429 Quota Error থেকে বাঁচতে স্মার্ট Auto-Retry সিস্টেম
+async function fetchWithRetry(url, options, pageIndex, totalPages, maxRetries = 3) {
+    for (let i = 0; i < maxRetries; i++) {
+        const response = await fetch(url, options);
+        if (response.status === 429) {
+            setStatus(`Rate Limit Hit! Waiting 10s before retry... (Attempt ${i+1}/${maxRetries})`, 30+(pageIndex/totalPages)*40);
+            await new Promise(r => setTimeout(r, 10000)); // ১০ সেকেন্ড অপেক্ষা করবে
+            continue;
+        }
+        return response;
+    }
+    throw new Error("Google API limit exceeded. Please try again after a few minutes or use a new API key.");
+}
+
+async function geminiOCR(canvas, pageIndex, totalPages){
  const apiKey=localStorage.getItem(KEY_NAME);
  if(!apiKey)throw new Error("Gemini API Key পাওয়া যায়নি।");
 
  const base64=canvas.toDataURL("image/jpeg",0.88).split(",")[1];
  
+ // লাইন বাই লাইন মাপার জন্য নতুন প্রম্পট
  const prompt=`Extract all visible text from this document. 
- Maintain the exact layout, especially for multi-column documents like voter lists.
+ CRITICAL INSTRUCTION: Break the text down STRICTLY LINE-BY-LINE. Do not group multiple lines into one object.
+ Each object must represent a single horizontal line of text.
  Return ONLY a valid JSON array of objects. 
  Each object must have two keys:
- "text": "the exact text string",
- "box": [ymin, xmin, ymax, xmax] (these are the bounding box coordinates scaled from 0 to 1000 representing the exact location of the text in the image).
- Example: [{"text": "নূরজাহান", "box": [120, 50, 150, 200]}]
+ "text": "the exact text string of that single line (no newlines)",
+ "box": [ymin, xmin, ymax, xmax] (bounding box coordinates scaled from 0 to 1000).
+ Example: [{"text": "নাম: নূরজাহান বেগম", "box": [120, 50, 140, 200]}]
  Do not add any markdown formatting or explanations.`;
 
- const url="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key="+encodeURIComponent(apiKey);
+ const url="https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+encodeURIComponent(apiKey);
 
- const response=await fetch(url,{
+ const response = await fetchWithRetry(url, {
    method:"POST", headers:{"Content-Type":"application/json"},
    body:JSON.stringify({ contents:[{parts:[{text:prompt},{inline_data:{mime_type:"image/jpeg",data:base64}}]}], generationConfig:{temperature:0} })
- });
+ }, pageIndex, totalPages);
 
  const raw=await response.text();
  if(!response.ok) throw new Error(`Gemini Error: ${raw.slice(0,150)}`);
@@ -287,7 +303,9 @@ async function createPDF(pages, quality, ocr) {
 
       if (ocr && pageData.blocks && pageData.blocks.length > 0) {
           doc.setFont("Bengali");
-          doc.setTextColor(245, 245, 245); 
+          
+          // ম্যাজিক: টেক্সটকে ১০০% অদৃশ্য (Transparent) কিন্তু সিলেক্টেবল করে দেওয়া হলো!
+          doc.setGState(new doc.GState({opacity: 0}));
           
           for (const block of pageData.blocks) {
               try {
@@ -306,6 +324,9 @@ async function createPDF(pages, quality, ocr) {
                   doc.text(block.text, xMin, yPos);
               } catch(e) {}
           }
+          
+          // ইমেজের জন্য Opacity আবার ১ করে দেওয়া হলো
+          doc.setGState(new doc.GState({opacity: 1}));
       }
 
       const imgData = pageData.canvas.toDataURL('image/jpeg', quality);
@@ -343,13 +364,13 @@ $("generate").onclick=async()=>{
 
    if(ocr){
      for(let i=0;i<pages.length;i++){
-       setStatus(`AI Layout Scanning — page ${i+1}/${pages.length}`,30+(i/pages.length)*40);
-       pages[i].blocks=await geminiOCR(pages[i].canvas);
+       setStatus(`AI Line Scanning — page ${i+1}/${pages.length}`,30+(i/pages.length)*40);
+       pages[i].blocks=await geminiOCR(pages[i].canvas, i, pages.length);
        
-       // Anti-429 Rate Limit Protection: 4 সেকেন্ডের বিরতি (শেষ পেজ বাদে)
+       // রেগুলার স্পিড ব্রেকার
        if(i < pages.length - 1) {
-           setStatus(`API Cooldown: Rate limit protection (${i+1}/${pages.length})...`, 30+(i/pages.length)*40);
-           await new Promise(resolve => setTimeout(resolve, 4000));
+           setStatus(`Cooling down API... (${i+1}/${pages.length})`, 30+(i/pages.length)*40);
+           await new Promise(resolve => setTimeout(resolve, 3000));
        }
      }
    }
