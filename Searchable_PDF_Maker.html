@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Smart Scanner & PDF Maker - Pragati Telecom</title>
+    <title>Pragati AI Scanner - Login Required</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- html2pdf Library for generating PDF with Bengali font support -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary: #059669;
@@ -28,144 +26,180 @@
             min-height: 100vh;
         }
 
+        /* --- Login Modal Styles --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px); /* পেছনের অংশ ঘোলা করবে */
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        
+        .login-box {
+            background: white; padding: 40px; border-radius: 16px;
+            max-width: 420px; width: 90%; text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .login-box h2 { color: var(--primary); margin: 0 0 10px 0; }
+        .login-box p { color: #64748b; font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px; }
+        
+        .hidden { display: none !important; }
+        
+        /* অ্যাপের মূল অংশ লগইন না করা পর্যন্ত ব্লার থাকবে */
+        .locked-content { filter: blur(8px); pointer-events: none; user-select: none; }
+
+        /* --- Main App Styles --- */
         .container {
-            background: var(--glass-bg);
-            width: 100%;
-            max-width: 800px;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            background: var(--glass-bg); width: 100%; max-width: 800px;
+            padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 25px;
-            border-bottom: 2px dashed #e2e8f0;
-            padding-bottom: 15px;
-        }
-
+        .header { text-align: center; margin-bottom: 25px; border-bottom: 2px dashed #e2e8f0; padding-bottom: 15px; }
         .header h1 { margin: 0; color: var(--primary); font-size: 1.8rem; }
-        .header p { margin: 5px 0 0 0; font-size: 0.9rem; color: #64748b; }
-
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; }
 
         input[type="password"], input[type="file"] {
-            width: 100%; padding: 12px; border: 1px solid #cbd5e1;
-            border-radius: 8px; font-size: 1rem; box-sizing: border-box;
+            width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px;
+            font-size: 1rem; margin-bottom: 15px; transition: 0.3s; box-sizing: border-box;
         }
+        
+        input[type="password"]:focus { outline: none; border-color: var(--primary); }
 
         button {
             background-color: var(--primary); color: white; border: none;
-            padding: 12px 24px; border-radius: 8px; font-size: 1rem;
-            font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%;
-            margin-bottom: 10px;
+            padding: 12px 24px; border-radius: 8px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; width: 100%; transition: 0.3s;
         }
         button:hover { background-color: var(--primary-hover); }
-        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
         
-        .btn-pdf { background-color: #dc2626; }
-        .btn-pdf:hover { background-color: #b91c1c; }
-
-        .result-box { display: none; margin-top: 25px; }
+        .btn-logout { background-color: #ef4444; margin-top: 20px; width: auto; font-size: 0.9rem; padding: 8px 16px; }
+        .btn-logout:hover { background-color: #dc2626; }
 
         .editor-area {
-            background: #fff; min-height: 250px; border: 1px solid #cbd5e1;
-            border-radius: 8px; padding: 20px; font-size: 1.05rem;
-            line-height: 1.6; white-space: pre-wrap;
+            background: #f8fafc; min-height: 200px; border: 1px solid #cbd5e1;
+            border-radius: 8px; padding: 20px; margin-top: 20px; white-space: pre-wrap;
         }
-
-        .file-status {
-            font-size: 0.9rem; color: #2563eb; margin-top: 10px; font-weight: 600; display: none;
-        }
-
-        .loader { display: none; text-align: center; margin: 20px 0; color: var(--primary); font-weight: 600; }
+        .image-preview { max-width: 100%; max-height: 250px; border-radius: 8px; display: none; margin-bottom: 15px; }
+        .loader { display: none; text-align: center; margin: 15px 0; color: var(--primary); font-weight: 600; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <h1>🧠 AI PDF & Image Scanner</h1>
-            <p>যেকোনো ছবি (JPG/PNG) বা PDF ফাইল আপলোড করে ভিতরের টেক্সট বের করুন এবং নতুন PDF তৈরি করুন।</p>
-        </div>
-
-        <div class="form-group">
-            <label>🔑 Gemini API Key:</label>
-            <input type="password" id="apiKey" placeholder="আপনার API Key এখানে পেস্ট করুন...">
-        </div>
-
-        <div class="form-group">
-            <!-- এখানে PDF সাপোর্ট যুক্ত করা হয়েছে -->
-            <label>📄 স্ক্যান করা ছবি বা PDF আপলোড করুন:</label>
-            <input type="file" id="fileInput" accept="image/png, image/jpeg, application/pdf">
-            <div id="fileStatus" class="file-status">✅ ফাইল লোড হয়েছে!</div>
-        </div>
-
-        <button id="generateBtn" onclick="extractText()">✨ ফাইল থেকে টেক্সট বের করুন</button>
-        
-        <div class="loader" id="loader">Gemini আপনার ফাইলটি পড়ছে... একটু অপেক্ষা করুন ⏳</div>
-
-        <div class="result-box" id="resultBox">
-            <label>📝 এক্সট্রাক্ট করা টেক্সট (১০০% নির্ভুল):</label>
-            <div id="outputContent" class="editor-area" contenteditable="true"></div>
+    <div id="loginModal" class="modal-overlay">
+        <div class="login-box">
+            <h2>Pragati AI Tools 🚀</h2>
+            <p>আমাদের প্রো-লেভেলের টুলগুলো ব্যবহার করতে আপনার নিজস্ব Google Gemini API Key দিয়ে লগইন করুন।</p>
             
-            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button onclick="copyText()" style="background-color: #3b82f6; flex: 1;">📋 কপি করুন</button>
-                <button onclick="downloadPDF()" class="btn-pdf" style="flex: 1;">🖨️ PDF হিসেবে সেভ করুন</button>
-            </div>
+            <input type="password" id="loginApiKey" placeholder="আপনার API Key এখানে দিন...">
+            <button onclick="loginAndSaveKey()">লগইন করুন ও সেভ রাখুন</button>
+            
+            <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 20px;">
+                🔒 <b>১০০% সুরক্ষিত:</b> আপনার Key সরাসরি আপনার ব্রাউজারে সেভ থাকে। আমাদের কোনো ডেটাবেস বা সার্ভার নেই।
+            </p>
+        </div>
+    </div>
+
+    <div id="appContainer" class="container locked-content">
+        <div class="header">
+            <h1>🧠 AI Smart Document Scanner</h1>
+            <p>আপনার অ্যাকাউন্ট লগইন করা আছে। এবার যেকোনো ছবি স্ক্যান করুন!</p>
+        </div>
+
+        <input type="file" id="imageInput" accept="image/png, image/jpeg">
+        <img id="imagePreview" class="image-preview" alt="Preview">
+
+        <button id="generateBtn" onclick="extractText()">✨ টেক্সট বের করুন (OCR)</button>
+        <div class="loader" id="loader">Gemini স্ক্যান করছে... ⏳</div>
+
+        <div id="outputContent" class="editor-area" contenteditable="true">রেজাল্ট এখানে আসবে...</div>
+        
+        <div style="text-align: right;">
+            <button class="btn-logout" onclick="logoutUser()">🚪 লগআউট (Key মুছুন)</button>
         </div>
     </div>
 
     <script>
-        let base64Data = "";
-        let fileMimeType = "";
+        let base64Image = "";
+        const storageKeyName = "pragati_gemini_key";
 
-        // ফাইল সিলেক্ট করার পর সেটিকে Base64 এ কনভার্ট করা
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const statusDiv = document.getElementById('fileStatus');
+        // --- Authentication Logic (Login & Logout) ---
+        
+        // পেজ লোড হওয়ার সাথে সাথে চেক করবে আগে থেকে Key সেভ করা আছে কিনা
+        window.onload = function() {
+            const savedKey = localStorage.getItem(storageKeyName);
+            if (savedKey) {
+                // Key থাকলে মডাল লুকিয়ে অ্যাপ খুলে দেবে
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('locked-content');
+            }
+        };
+
+        // লগইন বাটনে ক্লিক করলে কাজ করবে
+        function loginAndSaveKey() {
+            const inputKey = document.getElementById('loginApiKey').value.trim();
+            if (inputKey === "") {
+                alert("দয়া করে একটি সঠিক API Key দিন!");
+                return;
+            }
             
+            // Key ব্রাউজারে সেভ করা হচ্ছে
+            localStorage.setItem(storageKeyName, inputKey);
+            
+            // মডাল লুকিয়ে অ্যাপ আনলক করা হচ্ছে
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('locked-content');
+        }
+
+        // লগআউট ফাংশন
+        function logoutUser() {
+            if(confirm("আপনি কি নিশ্চিত যে আপনার API Key ডিলিট করে লগআউট করতে চান?")) {
+                localStorage.removeItem(storageKeyName); // Key ডিলিট
+                location.reload(); // পেজ রিলোড করে আবার লক করে দেবে
+            }
+        }
+
+        // --- App Logic (Image Upload & API Call) ---
+
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
             if (file) {
-                fileMimeType = file.type;
                 const reader = new FileReader();
                 reader.onload = function(readerEvent) {
-                    // Base64 স্ট্রিং থেকে 'data:image/jpeg;base64,' অংশটুকু বাদ দেওয়া
-                    const result = readerEvent.target.result;
-                    base64Data = result.split(',')[1];
-                    
-                    statusDiv.style.display = 'block';
-                    statusDiv.innerText = `✅ ${file.name} রেডি হয়েছে!`;
+                    base64Image = btoa(new Uint8Array(readerEvent.target.result).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+                    const imgPreview = document.getElementById('imagePreview');
+                    imgPreview.src = `data:${file.type};base64,${base64Image}`;
+                    imgPreview.style.display = 'block';
                 };
-                reader.readAsDataURL(file); // PDF বা ছবি সবকিছুর জন্যই কাজ করবে
+                reader.readAsArrayBuffer(file);
             }
         });
 
         async function extractText() {
-            const apiKey = document.getElementById('apiKey').value.trim();
-            const fileInput = document.getElementById('fileInput');
-            const resultBox = document.getElementById('resultBox');
-            const outputContent = document.getElementById('outputContent');
+            // প্রতিবার কাজের সময় লোকাল স্টোরেজ থেকে Key টেনে নেবে
+            const apiKey = localStorage.getItem(storageKeyName); 
+            
+            if (!apiKey) {
+                alert("API Key পাওয়া যায়নি! আবার লগইন করুন।");
+                location.reload();
+                return;
+            }
+
+            if (!base64Image) {
+                alert("আগে একটি ছবি আপলোড করুন!");
+                return;
+            }
+
+            const fileInput = document.getElementById('imageInput');
+            const mimeType = fileInput.files[0].type;
             const loader = document.getElementById('loader');
             const generateBtn = document.getElementById('generateBtn');
-
-            if (!apiKey) {
-                alert("দয়া করে আপনার Gemini API Key দিন!");
-                return;
-            }
-            if (!base64Data) {
-                alert("দয়া করে একটি ফাইল (ছবি বা PDF) আপলোড করুন!");
-                return;
-            }
+            const outputContent = document.getElementById('outputContent');
 
             generateBtn.disabled = true;
             loader.style.display = 'block';
-            resultBox.style.display = 'none';
 
-            // Gemini-কে দেওয়া নির্দেশ (Prompt)
-            const systemPrompt = "Extract all the text from this document exactly as it appears. Maintain the language (Bengali or English). Do not add any extra formatting, just the plain text.";
-
+            const systemPrompt = "Extract all text exactly as it appears in this image.";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             try {
@@ -176,57 +210,23 @@
                         contents: [{
                             parts: [
                                 { text: systemPrompt },
-                                {
-                                    inline_data: {
-                                        mime_type: fileMimeType,
-                                        data: base64Data
-                                    }
-                                }
+                                { inline_data: { mime_type: mimeType, data: base64Image } }
                             ]
                         }]
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error("API Key ভুল অথবা ফাইলের সাইজ খুব বড়।");
-                }
-
-                const data = await response.json();
-                let aiText = data.candidates[0].content.parts[0].text;
+                if (!response.ok) throw new Error("API Key ভুল অথবা ইন্টারনেটে সমস্যা।");
                 
-                outputContent.innerText = aiText;
-                resultBox.style.display = 'block';
+                const data = await response.json();
+                outputContent.innerText = data.candidates[0].content.parts[0].text;
 
             } catch (error) {
                 alert("❌ এরর: " + error.message);
-                console.error(error);
             } finally {
                 generateBtn.disabled = false;
                 loader.style.display = 'none';
             }
-        }
-
-        // কপি করার ফাংশন
-        function copyText() {
-            const text = document.getElementById('outputContent').innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                alert("টেক্সট কপি করা হয়েছে!");
-            });
-        }
-
-        // PDF বানানোর ফাংশন (html2pdf লাইব্রেরি ব্যবহার করে)
-        function downloadPDF() {
-            const element = document.getElementById('outputContent');
-            const opt = {
-                margin:       0.5,
-                filename:     'Extracted_Document.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' }
-            };
-
-            // PDF তৈরি এবং ডাউনলোড শুরু
-            html2pdf().set(opt).from(element).save();
         }
     </script>
 </body>
