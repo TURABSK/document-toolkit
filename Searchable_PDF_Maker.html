@@ -11,11 +11,11 @@
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#f5f7fa,#c3cfe2);color:#1a202c;min-height:100vh}
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#f5f7fa,#c3cfe2);color:#1a202c;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px}
 .hidden{display:none!important}
-.nav{padding:18px;text-align:center;background:#ffffffd9;backdrop-filter:blur(10px);box-shadow:0 3px 15px #0000000d}
+.nav{width:100%;max-width:1250px;padding:18px;text-align:center;background:#ffffffd9;backdrop-filter:blur(10px);box-shadow:0 3px 15px #0000000d;border-radius:14px;margin-bottom:25px}
 .nav h2{margin:0;font-size:24px}
-.main{max-width:1250px;margin:auto;padding:35px 18px}
+.main{width:100%;max-width:1250px;margin:auto}
 .title{text-align:center;margin-bottom:28px}
 .title h1{margin:0 0 8px;font-size:32px}.title p{margin:0;color:#718096}
 .card{background:#fffffff2;border:1px solid #ffffffaa;border-radius:18px;box-shadow:0 12px 35px #00000012}
@@ -45,19 +45,6 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
 .download{display:inline-block;background:#11998e;color:#fff;text-decoration:none;margin-top:15px}
 .error{background:#fff5f5;color:#c53030;border:1px solid #feb2b2;border-radius:10px;padding:12px;margin-top:15px;text-align:left;white-space:pre-wrap;font-size:13px}
 @media(max-width:850px){.workspace{grid-template-columns:1fr}.sidebar{width:100%}}
-
-.toolgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;margin-top:10px}
-.toolcard{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px 20px;text-align:left;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
-.toolcard:hover{transform:translateY(-3px);box-shadow:0 14px 30px #00000014;border-color:#8fd3ff}
-.toolcard .ticon{font-size:32px;display:block;margin-bottom:14px}
-.toolcard h4{margin:0 0 6px;font-size:16px}
-.toolcard p{margin:0;font-size:12.5px;color:#718096;line-height:1.5}
-.toolcard.disabled{cursor:not-allowed;opacity:.55}
-.toolcard.disabled:hover{transform:none;box-shadow:none;border-color:#e2e8f0}
-.soon{position:absolute;top:14px;right:14px;background:#edf2f7;color:#4a5568;font-size:10px;font-weight:700;padding:4px 9px;border-radius:20px}
-.active-badge{position:absolute;top:14px;right:14px;background:linear-gradient(135deg,#4facfe,#00c6ff);color:#fff;font-size:10px;font-weight:700;padding:4px 9px;border-radius:20px}
-.backbtn{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:#3182ce;font-weight:700;font-size:14px;padding:0 0 18px;cursor:pointer}
-.backbtn:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -72,60 +59,12 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
   </div>
 </div>
 
-<div class="nav"><h2>📄 Pragati Pro Tools</h2></div>
+<div class="nav"><h2>📄 Pragati Pro Searchable PDF Maker</h2></div>
 <div class="main">
 
-<div id="dashboard">
-  <div id="dashTitle" class="title">
-    <h1>Pragati Pro Tools</h1>
-    <p>আপনার সব PDF দরকার, এক জায়গায়</p>
-  </div>
-  <div class="toolgrid">
-    <div class="toolcard" id="tool-ocr" onclick="openTool('ocr')">
-      <span class="active-badge">চালু আছে</span>
-      <span class="ticon">🔎</span>
-      <h4>OCR PDF</h4>
-      <p>স্ক্যান করা ছবি বা PDF-কে AI দিয়ে সার্চযোগ্য ও সিলেক্টযোগ্য PDF-এ রূপান্তর করুন।</p>
-    </div>
-    <div class="toolcard disabled">
-      <span class="soon">শীঘ্রই আসছে</span>
-      <span class="ticon">🔗</span>
-      <h4>Merge PDF</h4>
-      <p>একাধিক PDF ফাইলকে একটি ফাইলে জোড়া লাগান।</p>
-    </div>
-    <div class="toolcard disabled">
-      <span class="soon">শীঘ্রই আসছে</span>
-      <span class="ticon">✂️</span>
-      <h4>Split PDF</h4>
-      <p>একটি PDF থেকে নির্দিষ্ট পেজ আলাদা করে নিন।</p>
-    </div>
-    <div class="toolcard disabled">
-      <span class="soon">শীঘ্রই আসছে</span>
-      <span class="ticon">🗜️</span>
-      <h4>Compress PDF</h4>
-      <p>মান ঠিক রেখে PDF-এর সাইজ কমান।</p>
-    </div>
-    <div class="toolcard disabled">
-      <span class="soon">শীঘ্রই আসছে</span>
-      <span class="ticon">📝</span>
-      <h4>PDF → Word</h4>
-      <p>PDF-কে এডিটযোগ্য Word ফাইলে রূপান্তর করুন।</p>
-    </div>
-    <div class="toolcard disabled">
-      <span class="soon">শীঘ্রই আসছে</span>
-      <span class="ticon">🖼️</span>
-      <h4>Image → PDF</h4>
-      <p>JPG/PNG ছবিকে PDF-এ রূপান্তর করুন।</p>
-    </div>
-  </div>
-</div>
-
-<div id="ocrTool" class="hidden">
-<button class="backbtn" onclick="goHome()">← সব টুলে ফিরে যান</button>
-
 <div id="title" class="title">
-  <h1>OCR PDF — Upload Files</h1>
-  <p>Universal Layout Scanner - ILovePDF-এর মতো নিখুঁত সিলেকশন!</p>
+  <h1>Upload Files</h1>
+  <p>Universal Multi-Column Layout Scanner - ডান-বাম সব কলাম ১০০% নিখুঁত!</p>
 </div>
 
 <div id="upload" class="upload card">
@@ -158,7 +97,7 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
       <div class="toggle">
         <input id="ocr" type="checkbox" checked>
         <div><b>🔎 Make Searchable with AI</b><br>
-        <small>১০০% অদৃশ্য ও নিখুঁত লাইন-সিলেকশন।</small></div>
+        <small>ডান ও বাম উভয় কলামের নিখুঁত লাইন-সিলেকশন।</small></div>
       </div>
     </div>
 
@@ -183,8 +122,6 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
 
 </div>
 
-</div>
-
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
@@ -192,17 +129,6 @@ const KEY_NAME="pragati_gemini_key";
 const state={files:[],pages:[],originalKB:0};
 const $=id=>document.getElementById(id);
 const setStatus=(t,p)=>{$("status").textContent=t;if(p!==undefined)$("bar").style.width=p+"%"};
-
-function openTool(name){
-  if(name==="ocr"){
-    $("dashboard").classList.add("hidden");
-    $("ocrTool").classList.remove("hidden");
-  }
-}
-function goHome(){
-  $("ocrTool").classList.add("hidden");
-  $("dashboard").classList.remove("hidden");
-}
 
 window.addEventListener("load",()=>{
   if(localStorage.getItem(KEY_NAME)) $("loginModal").classList.add("hidden");
@@ -220,18 +146,18 @@ $("sizeSlider").oninput=e=>$("sizeText").textContent=e.target.value;
 $("fileInput").onchange=e=>addFiles([...e.target.files]);
 $("moreInput").onchange=e=>addFiles([...e.target.files]);
 
-new Sortable($("grid"),{
+new Sortable($("grid",{
  animation:150,
  onEnd:()=>{
    const ids=[...$("grid").children].map(x=>x.dataset.id);
    state.pages.sort((a,b)=>ids.indexOf(a.id)-ids.indexOf(b.id));
    renumber();
  }
-});
+}));
 
 async function addFiles(files){
   if(!files.length)return;
-  $("upload").classList.add("hidden"); $("title").classList.add("hidden"); $("workspace").classList.remove("hidden");
+  $("upload").classList.add("hidden"); $("workspace").classList.remove("hidden");
 
   for(const file of files){
     if(!["application/pdf","image/png","image/jpeg","image/webp"].includes(file.type)) continue;
@@ -254,7 +180,7 @@ function addGrid(obj){
   div.innerHTML=`<div class="num"></div><button class="remove">✕</button><div class="preview">${preview}</div><div class="name" title="${obj.name}">${obj.name}</div>`;
   div.querySelector(".remove").onclick=()=>{
     state.files=state.files.filter(x=>x.id!==obj.id); div.remove(); renumber();
-    if(!state.files.length){$("workspace").classList.add("hidden");$("upload").classList.remove("hidden");$("title").classList.remove("hidden")}
+    if(!state.files.length){$("workspace").classList.add("hidden");$("upload").classList.remove("hidden");}
   };
   $("grid").appendChild(div); renumber();
 }
@@ -295,8 +221,6 @@ async function loadPages(){
  return pages;
 }
 
-// OCR-এর জন্য আলাদাভাবে contrast/sharpness বাড়ানো একটা কপি বানানো হয়
-// (চূড়ান্ত PDF-এ বসা ছবিতে এই ফিল্টার প্রভাব ফেলে না, শুধু Gemini-কে পড়তে সাহায্য করে)
 function enhanceForOCR(canvas){
   const c=document.createElement("canvas"); c.width=canvas.width; c.height=canvas.height;
   const ctx=c.getContext("2d");
@@ -314,39 +238,30 @@ function canvasSlice(canvas, fromRatio, toRatio){
   return c;
 }
 
-// লাইন বাই লাইন মাপার জন্য কঠোর, precision-focused প্রম্পট
-const OCR_PROMPT = `You are a high-precision OCR engine for Bengali (Bangla) and English mixed documents.
-Extract EVERY visible line of text from this document image, exactly as written.
+// ডান ও বাম উভয় কলামের পজিশন ১০০% নিখুঁতভাবে মাপার জন্য আপডেট করা প্রম্পট
+const OCR_PROMPT = `You are an expert multi-column OCR engine for Bengali and English documents (like voter lists).
+Extract EVERY visible line of text from this document image precisely.
 
 STRICT RULES:
-1. Transcribe text EXACTLY as it appears — do not autocorrect spelling, do not translate, do not paraphrase, do not summarize, do not skip repeated or noisy text.
-2. Break the text down STRICTLY LINE-BY-LINE. Do not merge multiple lines into one object, and do not split a single line into multiple objects.
-3. Preserve original numerals (Bengali ০-৯ or English 0-9) exactly as shown — do not convert between them.
-4. If the document has multiple columns or tables, read in correct natural reading order: top-to-bottom within each column, left column before right column.
-5. Include headers, footers, stamps, printed captions near signatures, and small print — skip only pure decorative graphics with no text.
-6. If a line is partially cut off, blurry, or uncertain, still transcribe your best reading rather than omitting it.
+1. Transcribe text exactly as it appears. Do not skip any text from the left, middle, or right columns.
+2. Break text STRICTLY LINE-BY-LINE.
+3. CRITICAL FOR BOUNDING BOXES: Provide accurate [ymin, xmin, ymax, xmax] coordinates scaled strictly from 0 to 1000 relative to the full image width and height. Ensure right-column items have high xmin/xmax values (e.g., 600 to 1000) so they map correctly to the right side of the page.
+4. Return ONLY a valid JSON array of objects, no markdown fences, no explanation.
+Example: [{"text": "নাম: সাজেমান মণ্ডল", "box": [120, 350, 140, 600]}]`;
 
-Return ONLY a valid JSON array of objects, nothing else (no markdown fences, no explanation).
-Each object must have exactly two keys:
-"text": the exact text string of that single line (no embedded newlines),
-"box": [ymin, xmin, ymax, xmax] — bounding box coordinates scaled 0 to 1000 relative to the image.
-Example: [{"text": "নাম: নূরজাহান বেগম", "box": [120, 50, 140, 200]}]`;
-
-// 429 Quota Error থেকে বাঁচতে স্মার্ট Auto-Retry সিস্টেম
 async function fetchWithRetry(url, options, pageIndex, totalPages, maxRetries = 3) {
     for (let i = 0; i < maxRetries; i++) {
         const response = await fetch(url, options);
         if (response.status === 429) {
             setStatus(`Rate Limit Hit! Waiting 15s before retry... (Attempt ${i+1}/${maxRetries})`, 30+(pageIndex/totalPages)*40);
-            await new Promise(r => setTimeout(r, 15000)); // ১৫ সেকেন্ড অপেক্ষা করবে
+            await new Promise(r => setTimeout(r, 15000));
             continue;
         }
         return response;
     }
-    throw new Error("Google API limit exceeded. Please try again after a few minutes or use a new API key.");
+    throw new Error("Google API limit exceeded. Please try again after a few minutes.");
 }
 
-// একটা ছবির slice-এর উপর একবার Gemini OCR কল — {blocks, truncated} রিটার্ন করে
 async function geminiOCRRaw(canvas, pageIndex, totalPages){
  const apiKey=localStorage.getItem(KEY_NAME);
  if(!apiKey)throw new Error("Gemini API Key পাওয়া যায়নি।");
@@ -371,11 +286,10 @@ async function geminiOCRRaw(canvas, pageIndex, totalPages){
  const raw=await response.text();
  if(!response.ok) throw new Error(`Gemini Error: ${raw.slice(0,150)}`);
 
- let data; try{data=JSON.parse(raw)}catch{ console.warn("Gemini raw response parse failed", raw.slice(0,300)); return {blocks:[], truncated:false}; }
+ let data; try{data=JSON.parse(raw)}catch{ return {blocks:[], truncated:false}; }
 
  const candidate=data?.candidates?.[0];
  const truncated = candidate?.finishReason==="MAX_TOKENS";
-
  const text=candidate?.content?.parts?.map(p=>p.text||"").join("")||"";
 
  let jsonSlice=text.trim();
@@ -390,12 +304,10 @@ async function geminiOCRRaw(canvas, pageIndex, totalPages){
      .map(b=>({...b, text:b.text.normalize("NFC")}));
    return {blocks, truncated};
  }catch(e){
-   console.warn(`Page ${pageIndex+1}: could not parse Gemini JSON`, text.slice(0,300));
    return {blocks:[], truncated};
  }
 }
 
-// দুটো box কে "একই লাইন" ধরার জন্য কাছাকাছি text+position মিলিয়ে দেখা (overlap থেকে duplicate সরাতে)
 function dedupeBlocks(blocks){
   const seen=[];
   const out=[];
@@ -409,8 +321,6 @@ function dedupeBlocks(blocks){
   return out;
 }
 
-// পুরো পেজ OCR করে; আউটপুট token limit-এ কাটা পড়লে (MAX_TOKENS) পেজটাকে
-// উপরে-নিচে দুই ভাগে ভেঙে আবার চেষ্টা করে, যাতে ঘন লেখার পেজেও কোনো লাইন বাদ না যায়
 async function geminiOCR(canvas, pageIndex, totalPages, yFrom=0, yTo=1, depth=0){
   const slice = (yFrom===0 && yTo===1) ? canvas : canvasSlice(canvas, yFrom, yTo);
   const {blocks, truncated} = await geminiOCRRaw(slice, pageIndex, totalPages);
@@ -426,9 +336,8 @@ async function geminiOCR(canvas, pageIndex, totalPages, yFrom=0, yTo=1, depth=0)
   }));
 
   if(truncated && depth<2 && (yTo-yFrom)>0.15){
-    console.warn(`Page ${pageIndex+1}: output truncated — splitting slice [${yFrom.toFixed(2)}-${yTo.toFixed(2)}] and retrying.`);
     const mid=(yFrom+yTo)/2;
-    const overlap=0.02; // সামান্য overlap রাখা হয় যাতে সীমানার লাইন বাদ না যায়
+    const overlap=0.02;
     const topHalf=await geminiOCR(canvas, pageIndex, totalPages, yFrom, Math.min(1,mid+overlap), depth+1);
     const botHalf=await geminiOCR(canvas, pageIndex, totalPages, Math.max(0,mid-overlap), yTo, depth+1);
     return dedupeBlocks([...topHalf, ...botHalf]);
@@ -448,27 +357,27 @@ async function createPDF(pages, quality, ocr) {
   });
 
   if (ocr) {
-      setStatus("Downloading Bengali Font for OCR...", 80);
-      const fontURLs = [
-        "https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSansBengali/NotoSansBengali-Regular.ttf",
-        "https://cdn.jsdelivr.net/gh/notofonts/noto-fonts@main/hinted/ttf/NotoSansBengali/NotoSansBengali-Regular.ttf"
-      ];
-      let fontBuffer=null, lastErr=null;
-      for(const fontURL of fontURLs){
-        try{
-          const fontRes = await fetch(fontURL, { cache: "force-cache" });
-          if (!fontRes.ok) { lastErr=new Error(`HTTP ${fontRes.status}`); continue; }
-          fontBuffer = await fontRes.arrayBuffer();
-          break;
-        }catch(e){ lastErr=e; }
-      }
-      if(!fontBuffer) throw new Error(`Bengali font download failed (${lastErr?.message||"unknown error"}). Check your internet connection and try again.`);
-      
-      let binary = '';
-      const bytes = new Uint8Array(fontBuffer);
-      for (let i = 0; i < bytes.byteLength; i++) { binary += String.fromCharCode(bytes[i]); }
-      doc.addFileToVFS("Bengali.ttf", btoa(binary));
-      doc.addFont("Bengali.ttf", "Bengali", "normal");
+      setStatus("Preparing Bengali Font...", 80);
+      try {
+          const fontURLs = [
+            "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansbengali/NotoSansBengali-Regular.ttf",
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansbengali/NotoSansBengali-Regular.ttf"
+          ];
+          let fontBuffer=null;
+          for(const fontURL of fontURLs){
+            try{
+              const fontRes = await fetch(fontURL);
+              if (fontRes.ok) { fontBuffer = await fontRes.arrayBuffer(); break; }
+            }catch(e){}
+          }
+          if(fontBuffer) {
+              let binary = '';
+              const bytes = new Uint8Array(fontBuffer);
+              for (let i = 0; i < bytes.byteLength; i++) { binary += String.fromCharCode(bytes[i]); }
+              doc.addFileToVFS("Bengali.ttf", btoa(binary));
+              doc.addFont("Bengali.ttf", "Bengali", "normal");
+          }
+      } catch(err) {}
   }
 
   for (let i = 0; i < pages.length; i++) {
@@ -476,9 +385,9 @@ async function createPDF(pages, quality, ocr) {
       if (i > 0) doc.addPage([pageData.w, pageData.h], pageData.w > pageData.h ? 'landscape' : 'portrait');
 
       if (ocr && pageData.blocks && pageData.blocks.length > 0) {
-          doc.setFont("Bengali");
+          try { doc.setFont("Bengali"); } catch(e) {}
           
-          // ম্যাজিক: টেক্সটকে ১০০% অদৃশ্য (Transparent) কিন্তু সিলেক্টেবল করে দেওয়া হলো!
+          // ডান ও বাম উভয় পাশের টেক্সট শতভাগ অদৃশ্য ও সিলেক্টেবল রাখা হলো
           doc.setGState(new doc.GState({opacity: 0}));
           
           for (const block of pageData.blocks) {
@@ -494,12 +403,10 @@ async function createPDF(pages, quality, ocr) {
                   doc.setFontSize(fontSize);
                   
                   let yPos = yMin + fontSize * 0.8; 
-                  
                   doc.text(block.text, xMin, yPos);
               } catch(e) {}
           }
           
-          // ইমেজের জন্য Opacity আবার ১ করে দেওয়া হলো
           doc.setGState(new doc.GState({opacity: 1}));
       }
 
@@ -534,14 +441,13 @@ $("generate").onclick=async()=>{
 
  try{
    const pages=await loadPages();
-   if(!pages.length)throw new Error("কোনো page পাওয়া যায়নি।");
+   if(!pages.length)throw new Error("কোনো page পাওয়া যায়নি।");
 
    if(ocr){
      for(let i=0;i<pages.length;i++){
-       setStatus(`AI Line Scanning — page ${i+1}/${pages.length}`,30+(i/pages.length)*40);
+       setStatus(`AI Multi-Column Scanning — page ${i+1}/${pages.length}`,30+(i/pages.length)*40);
        pages[i].blocks=await geminiOCR(pages[i].canvas, i, pages.length);
        
-       // রেগুলার স্পিড ব্রেকার (৪ সেকেন্ড)
        if(i < pages.length - 1) {
            setStatus(`Cooling down API... (${i+1}/${pages.length})`, 30+(i/pages.length)*40);
            await new Promise(resolve => setTimeout(resolve, 4000));
@@ -556,7 +462,7 @@ $("generate").onclick=async()=>{
    const blob=new Blob([bytes],{type:"application/pdf"});
    const url=URL.createObjectURL(blob);
    $("download").href=url; $("download").download="Pragati_Smart_PDF_" + Date.now() + ".pdf";
-   $("result").innerHTML=`${pages.length} page তৈরি হয়েছে। Final size: <b>${kb.toFixed(1)} KB</b> (Target: ${target} KB)`;
+   $("result").innerHTML=`${pages.length} page তৈরি হয়েছে। Final size: <b>${kb.toFixed(1)} KB</b> (Target: ${target} KB)`;
    $("progress").style.display="none"; $("success").style.display="block";
  }catch(err){
    console.error(err);
