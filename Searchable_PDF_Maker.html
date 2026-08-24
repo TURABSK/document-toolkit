@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Pragati Pro Searchable PDF Maker</title>
 
-<!-- শক্তিশালী jsPDF ইঞ্জিন -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- বাংলা সার্চ সাপোর্টের জন্য PDF-Lib ও Fontkit ইঞ্জিন -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://unpkg.com/regenerator-runtime@0.13.11/runtime.js"></script>
+<script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 
@@ -43,7 +45,7 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
 .progressbox{display:none;text-align:center;padding:45px;max-width:650px;margin:auto}
 .barwrap{height:12px;background:#e2e8f0;border-radius:10px;overflow:hidden;margin:20px 0}.bar{height:100%;width:0;background:#4facfe;transition:.2s}
 .success{display:none;text-align:center;padding:45px;max-width:650px;margin:auto}
-.download-pdf{background:#11998e;color:#fff;text-decoration:none;}
+.download-pdf{background:#11998e;color:#fff;text-decoration:none; width: 100%;}
 .error{background:#fff5f5;color:#c53030;border:1px solid #feb2b2;border-radius:10px;padding:12px;margin-top:15px;text-align:left;white-space:pre-wrap;font-size:13px}
 @media(max-width:850px){.workspace{grid-template-columns:1fr}.sidebar{width:100%}}
 </style>
@@ -65,7 +67,7 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
 
 <div id="title" class="title">
   <h1>Upload Files</h1>
-  <p>Universal Layout Scanner - নিখুঁত PDF এক্সট্রাক্ট করুন!</p>
+  <p>Universal Layout Scanner - নিখুঁত বাংলা সার্চ ও সিলেকশন সাপোর্ট!</p>
 </div>
 
 <div id="upload" class="upload card">
@@ -107,7 +109,7 @@ button,.download{border:0;border-radius:10px;padding:13px 18px;font-weight:700;c
       <div class="toggle">
         <input id="ocr" type="checkbox" checked>
         <div><b>🔎 Make Searchable with AI</b><br>
-        <small>১০০% অদৃশ্য পিডিএফ ডেটা।</small></div>
+        <small>১০০% খাঁটি বাংলা সার্চ সাপোর্ট।</small></div>
       </div>
     </div>
 
@@ -286,61 +288,71 @@ async function geminiOCR(canvas, pageIndex, totalPages, selectedLang){
 }
 
 async function createPDF(pages, quality, ocr) {
-  const { jsPDF } = window.jspdf;
-  const first = pages[0];
-  
-  const doc = new jsPDF({
-      orientation: first.w > first.h ? 'landscape' : 'portrait',
-      unit: 'px',
-      format: [first.w, first.h]
-  });
+  const { PDFDocument, rgb } = PDFLib;
+  const doc = await PDFDocument.create();
+  let font = null;
 
   if (ocr) {
+      doc.registerFontkit(window.fontkit);
       setStatus("Downloading Bengali Font for OCR...", 80);
       const fontURL = "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansbengali/NotoSansBengali-Regular.ttf";
       const fontRes = await fetch(fontURL, { cache: "force-cache" });
       const fontBuffer = await fontRes.arrayBuffer();
-      
-      let binary = '';
-      const bytes = new Uint8Array(fontBuffer);
-      for (let i = 0; i < bytes.byteLength; i++) { binary += String.fromCharCode(bytes[i]); }
-      doc.addFileToVFS("Bengali.ttf", btoa(binary));
-      doc.addFont("Bengali.ttf", "Bengali", "normal");
+      // ফন্ট এম্বেড করার ফলে ইউনিকোড/সার্চ সাপোর্ট কাজ করবে
+      font = await doc.embedFont(fontBuffer);
   }
 
   for (let i = 0; i < pages.length; i++) {
       const pageData = pages[i];
-      if (i > 0) doc.addPage([pageData.w, pageData.h], pageData.w > pageData.h ? 'landscape' : 'portrait');
+      const page = doc.addPage([pageData.w, pageData.h]);
 
-      if (ocr && pageData.blocks && pageData.blocks.length > 0) {
-          doc.setFont("Bengali");
-          doc.setGState(new doc.GState({opacity: 0})); // 100% Invisible 
-          
+      // ১. প্রথমে মূল ছবিটি ব্যাকগ্রাউন্ড হিসেবে যোগ করা হলো
+      const imgData = pageData.canvas.toDataURL('image/jpeg', quality);
+      const image = await doc.embedJpg(imgData);
+      page.drawImage(image, { x: 0, y: 0, width: pageData.w, height: pageData.h });
+
+      // ২. এর ঠিক ওপর দিয়ে ১০০% অদৃশ্য টেক্সটগুলো নিখুঁত মাপে বসানো হলো
+      if (ocr && font && pageData.blocks && pageData.blocks.length > 0) {
           for (const block of pageData.blocks) {
               try {
                   const box = block.box;
                   if(!box || box.length !== 4) continue;
                   
+                  // Gemini-এর টপ-লেফট স্কেল (0-1000) থেকে অরিজিনাল পিক্সেল মাপে কনভার্ট
                   const yMin = (box[0] / 1000) * pageData.h;
                   const xMin = (box[1] / 1000) * pageData.w;
                   const yMax = (box[2] / 1000) * pageData.h;
                   
                   let fontSize = Math.max(10, (yMax - yMin) * 0.85); 
-                  doc.setFontSize(fontSize);
                   
-                  let yPos = yMin + fontSize * 0.8; 
-                  
-                  doc.text(block.text, xMin, yPos);
+                  // pdf-lib-এ স্থানাঙ্ক (Coordinate) নিচ থেকে শুরু হয়, তাই Y পজিশন উল্টে দেওয়া হলো
+                  let pdfY = pageData.h - yMin - fontSize;
+
+                  try {
+                      page.drawText(block.text, {
+                          x: xMin, 
+                          y: pdfY, 
+                          size: fontSize, 
+                          font: font, 
+                          color: rgb(0,0,0), 
+                          opacity: 0 // ১০০% অদৃশ্য
+                      });
+                  } catch (e) {
+                      // অ্যান্টি-ক্র্যাশ মেকানিজম: কোনো জটিল যুক্তাক্ষর পেলে ফন্টটি ক্র্যাশ না করে একটা-একটা অক্ষর বসিয়ে দেবে
+                      let currentX = xMin;
+                      for (const char of block.text) {
+                          try {
+                              page.drawText(char, { x: currentX, y: pdfY, size: fontSize, font: font, color: rgb(0,0,0), opacity: 0 });
+                              currentX += fontSize * 0.45;
+                          } catch (err) {}
+                      }
+                  }
               } catch(e) {}
           }
-          doc.setGState(new doc.GState({opacity: 1}));
       }
-
-      const imgData = pageData.canvas.toDataURL('image/jpeg', quality);
-      doc.addImage(imgData, 'JPEG', 0, 0, pageData.w, pageData.h);
   }
   
-  return doc.output('arraybuffer');
+  return await doc.save();
 }
 
 async function makePDFWithTarget(pages, targetKB, ocr) {
