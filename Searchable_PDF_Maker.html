@@ -249,17 +249,40 @@ STRICT RULES:
 4. Return ONLY a valid JSON array of objects, no markdown fences, no explanation.
 Example: [{"text": "নাম: সাজেমান মণ্ডল", "box": [120, 350, 140, 600]}]`;
 
-async function fetchWithRetry(url, options, pageIndex, totalPages, maxRetries = 3) {
+// FIX: previously requests were paced with a fixed 4s sleep only between top-level
+// pages — but when a page's text is dense enough to hit MAX_TOKENS, geminiOCR()
+// recursively splits it into 2+ extra calls with NO pacing between them at all.
+// Free-tier Gemini Flash allows roughly 10-15 requests/minute; those unpaced
+// recursive bursts (very common on multi-column forms/voter lists — exactly what
+// this tool targets) blow past that ceiling regardless of the page-level delay.
+// This single gate now sits in front of EVERY actual fetch call, no matter where
+// it originates, so pacing is always respected.
+const MIN_GAP_MS = 4500; // ≈13 requests/minute — safely under the free-tier ceiling
+let lastCallTime = 0;
+async function rateLimitGate() {
+    const wait = lastCallTime + MIN_GAP_MS - Date.now();
+    if (wait > 0) await new Promise(r => setTimeout(r, wait));
+    lastCallTime = Date.now();
+}
+
+async function fetchWithRetry(url, options, pageIndex, totalPages, maxRetries = 6) {
     for (let i = 0; i < maxRetries; i++) {
+        await rateLimitGate();
         const response = await fetch(url, options);
         if (response.status === 429) {
-            setStatus(`Rate Limit Hit! Waiting 15s before retry... (Attempt ${i+1}/${maxRetries})`, 30+(pageIndex/totalPages)*40);
-            await new Promise(r => setTimeout(r, 15000));
+            // FIX: flat 15s wait → exponential backoff (and honor Retry-After if
+            // Google sends one), with more attempts — a single short wait often
+            // isn't enough to clear a saturated per-minute window on free tier.
+            const retryAfterHeader = response.headers.get("Retry-After");
+            const backoffSec = retryAfterHeader ? parseInt(retryAfterHeader, 10) : Math.round(8 * Math.pow(1.7, i));
+            const waitMs = Math.min(backoffSec * 1000, 90000);
+            setStatus(`Rate limit hit — ${Math.round(waitMs/1000)}s অপেক্ষা করা হচ্ছে... (Attempt ${i+1}/${maxRetries})`, 30+(pageIndex/totalPages)*40);
+            await new Promise(r => setTimeout(r, waitMs));
             continue;
         }
         return response;
     }
-    throw new Error("Google API limit exceeded. Please try again after a few minutes.");
+    throw new Error("Google API-এর রেট লিমিট বারবার হিট হচ্ছে। কিছুক্ষণ পর আবার চেষ্টা করুন, অথবা একসাথে কম পেজ/ছোট ব্যাচে আপলোড করুন।");
 }
 
 async function geminiOCRRaw(canvas, pageIndex, totalPages){
@@ -447,11 +470,10 @@ $("generate").onclick=async()=>{
      for(let i=0;i<pages.length;i++){
        setStatus(`AI Multi-Column Scanning — page ${i+1}/${pages.length}`,30+(i/pages.length)*40);
        pages[i].blocks=await geminiOCR(pages[i].canvas, i, pages.length);
-       
-       if(i < pages.length - 1) {
-           setStatus(`Cooling down API... (${i+1}/${pages.length})`, 30+(i/pages.length)*40);
-           await new Promise(resolve => setTimeout(resolve, 4000));
-       }
+       // FIX: the fixed 4s "cooldown" here has been removed — pacing is now
+       // handled uniformly by rateLimitGate() in front of every actual API call
+       // (including the recursive column-split calls this loop couldn't see),
+       // so it's both safer and no longer adds a redundant extra delay.
      }
    }
 
