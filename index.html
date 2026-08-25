@@ -143,66 +143,6 @@
             transform: scale(1.08);
         }
 
-        /* ==========================================
-           Fixed Before / After Animation CSS
-        ============================================= */
-        .bg-anim-container {
-            position: relative;
-            background: repeating-conic-gradient(#e2e8f0 0% 25%, #ffffff 0% 50%) 0 / 20px 20px; /* Transparent Grid */
-        }
-        
-        /* The 'After' Image: Simulates background removal via mix-blend-mode */
-        .bg-after {
-            position: absolute;
-            inset: 0;
-            background: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=80') center/cover;
-            mix-blend-mode: multiply; 
-            z-index: 1;
-        }
-        
-        /* The 'Before' Image: Original image, cropped using clip-path so it stays perfectly still */
-        .bg-before {
-            position: absolute;
-            inset: 0;
-            background: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=80') center/cover;
-            animation: wipe-mask 3.5s infinite alternate ease-in-out;
-            z-index: 2;
-        }
-
-        /* The moving scanning line */
-        .scan-line {
-            position: absolute;
-            top: 0; bottom: 0; width: 3px;
-            background: #3b82f6;
-            animation: scan-move 3.5s infinite alternate ease-in-out;
-            z-index: 3;
-            box-shadow: 0 0 8px rgba(0,0,0,0.5);
-        }
-
-        @keyframes wipe-mask {
-            0%, 15% { clip-path: inset(0 0 0 0); }
-            85%, 100% { clip-path: inset(0 100% 0 0); }
-        }
-
-        @keyframes scan-move {
-            0%, 15% { left: 100%; }
-            85%, 100% { left: 0%; }
-        }
-
-        .anim-label {
-            position: absolute;
-            bottom: 8px;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 3px 8px;
-            border-radius: 4px;
-            color: white;
-            z-index: 5;
-            letter-spacing: 0.5px;
-        }
-        .label-before { left: 8px; background: rgba(229, 62, 62, 0.85); }
-        .label-after { right: 8px; background: rgba(56, 161, 105, 0.85); }
-
         /* Card Content Box */
         .card-content {
             padding: 15px;
@@ -306,14 +246,10 @@
         </div>
         
         <div class="tools-grid">
-            <!-- 1. BG Remover (With Fixed Stable Animation) -->
-            <a href="Pragati_AI Studio_Pro.html" class="tool-card bg-purple">
-                <div class="card-img-wrapper bg-anim-container">
-                    <div class="bg-after"></div>
-                    <div class="bg-before"></div>
-                    <div class="scan-line"></div>
-                    <span class="anim-label label-before">BEFORE</span>
-                    <span class="anim-label label-after">AFTER</span>
+            <!-- 1. BG Remover -->
+            <a href="BG_Remover.html" class="tool-card bg-purple">
+                <div class="card-img-wrapper">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=80" alt="BG Remover">
                 </div>
                 <div class="card-content">
                     <i class="fas fa-user-edit tool-icon"></i>
@@ -324,7 +260,7 @@
             <!-- 2. PDF Compressor -->
             <a href="PDF_Compressor.html" class="tool-card bg-blue">
                 <div class="card-img-wrapper">
-                    <img src="https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?auto=format&fit=crop&w=500&q=80" alt="Person focused on compressing digital files">
+                    <img src="https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?auto=format&fit=crop&w=500&q=80" alt="PDF Compressor">
                 </div>
                 <div class="card-content">
                     <i class="fas fa-compress tool-icon"></i>
@@ -333,9 +269,9 @@
             </a>
 
             <!-- 3. PDF Editor -->
-            <a href="Smart_Visual_PDF_Editor.html" class="tool-card bg-pink">
+            <a href="PDF_Editor.html" class="tool-card bg-pink">
                 <div class="card-img-wrapper">
-                    <img src="https://images.unsplash.com/photo-1618044733300-9472054094ee?auto=format&fit=crop&w=500&q=80" alt="Person editing documents">
+                    <img src="https://images.unsplash.com/photo-1618044733300-9472054094ee?auto=format&fit=crop&w=500&q=80" alt="PDF Editor">
                 </div>
                 <div class="card-content">
                     <i class="fas fa-file-signature tool-icon"></i>
@@ -344,9 +280,9 @@
             </a>
 
             <!-- 4. PDF Merger -->
-            <a href="Drag-and-Drop_PDF_Maker.html" class="tool-card bg-yellow">
+            <a href="PDF_Merger.html" class="tool-card bg-yellow">
                 <div class="card-img-wrapper">
-                    <img src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=500&q=80" alt="Person organizing and merging paperwork">
+                    <img src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=500&q=80" alt="PDF Merger">
                 </div>
                 <div class="card-content">
                     <i class="fas fa-object-group tool-icon"></i>
@@ -355,9 +291,9 @@
             </a>
 
             <!-- 5. Searchable PDF / OCR -->
-            <a href="Searchable_PDF_Maker.html" class="tool-card bg-orange">
+            <a href="Searchable_PDF_OCR.html" class="tool-card bg-orange">
                 <div class="card-img-wrapper">
-                    <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=500&q=80" alt="Person closely inspecting text for OCR">
+                    <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=500&q=80" alt="Searchable PDF OCR">
                 </div>
                 <div class="card-content">
                     <i class="fas fa-file-code tool-icon"></i>
@@ -368,7 +304,7 @@
             <!-- 6. Super Ayushman Printer -->
             <a href="Super_Ayushman_Printer.html" class="tool-card bg-green">
                 <div class="card-img-wrapper">
-                    <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=500&q=80" alt="Professional holding identity cards">
+                    <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=500&q=80" alt="Super Ayushman Printer">
                 </div>
                 <div class="card-content">
                     <i class="fas fa-id-card tool-icon"></i>
@@ -377,9 +313,9 @@
             </a>
 
             <!-- 7. Both Side / Duplex Printer -->
-            <a href="DUAL_SIDE_PDF_Print.html" class="tool-card bg-teal">
+            <a href="Both_Side_Duplex_Printer.html" class="tool-card bg-teal">
                 <div class="card-img-wrapper">
-                    <img src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=500&q=80" alt="Office worker using a professional printer">
+                    <img src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=500&q=80" alt="Both Side Duplex Printer">
                 </div>
                 <div class="card-content">
                     <i class="fas fa-print tool-icon"></i>
