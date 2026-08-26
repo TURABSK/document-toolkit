@@ -1,15 +1,13 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pragati AI Photo Studio Pro</title>
 
-<!-- Cropper.js for Professional Cropping -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
-<!-- imgly for Offline AI Background Removal -->
 <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.7/dist/umd/index.js"></script>
 
 <style>
@@ -84,9 +82,10 @@ nav{background:#1e293b;color:#fff;padding:12px 24px;display:flex;align-items:cen
 
 /* Colors */
 .color-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.swatch{width:36px;height:36px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:.15s;}
+.swatch{width:36px;height:36px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:.15s;position:relative;}
 .swatch:hover,.swatch.active{transform:scale(1.1);border-color:var(--ink);box-shadow:0 4px 10px rgba(0,0,0,0.15);}
 .swatch.white{border-color:#cbd5e1;}
+.swatch.transparent{background:repeating-conic-gradient(#cbd5e1 0% 25%,#fff 0% 50%) 0 0/10px 10px;border-color:#cbd5e1;}
 
 /* Sliders */
 .sl-row{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:8px;}
@@ -113,44 +112,36 @@ nav{background:#1e293b;color:#fff;padding:12px 24px;display:flex;align-items:cen
 
 <div class="studio">
   
-  <!-- MAIN WORKSPACE -->
   <div class="main-col">
     
-    <!-- Upload Screen -->
     <div id="uploadScreen" class="upload-zone" onclick="document.getElementById('fileInput').click()">
       <div class="icon">📸</div>
-      <h2 style="margin-bottom:8px;color:var(--ink);">ছবি আপলোড করুন</h2>
-      <p>পাসপোর্ট সাইজ বা এডিটিংয়ের জন্য যেকোনো ছবি সিলেক্ট করুন</p>
+      <h2 style="margin-bottom:8px;color:var(--ink);">Upload a Photo</h2>
+      <p>Select any photo for passport-size or general editing</p>
       <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
     </div>
 
-    <!-- Editor Screen -->
     <div id="editorScreen" class="workspace-card hidden">
       
-      <!-- Top Tabs -->
       <div class="view-tabs" id="tabs">
-        <button class="view-tab active" id="tabCrop" onclick="switchTab('Crop')">১. সাইজ ও ক্রপ</button>
-        <button class="view-tab" id="tabEdit" onclick="switchTab('Edit')" disabled>২. এডিট ও ব্যাকগ্রাউন্ড</button>
-        <button class="view-tab" id="tabPrint" onclick="switchTab('Print')" disabled>৩. প্রিন্ট শিট</button>
+        <button class="view-tab active" id="tabCrop" onclick="switchTab('Crop')">1. Size &amp; Crop</button>
+        <button class="view-tab" id="tabEdit" onclick="switchTab('Edit')" disabled>2. Edit &amp; Background</button>
+        <button class="view-tab" id="tabPrint" onclick="switchTab('Print')" disabled>3. Print Sheet</button>
       </div>
 
-      <!-- Preview Container -->
       <div class="preview-container" id="previewContainer">
         
-        <!-- View 1: Cropper (Wrapped in a div so it hides perfectly) -->
         <div id="cropWrap" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
           <img id="cropImage" src="">
         </div>
         
-        <!-- View 2: Edit Canvas -->
         <canvas id="editCanvas" class="hidden"></canvas>
 
-        <!-- View 3: Print Layout -->
         <canvas id="printCanvas" class="hidden"></canvas>
         
         <div id="loader" class="hidden" style="position:absolute;inset:0;background:rgba(255,255,255,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;color:var(--accent);z-index:50;">
           <div style="font-size:30px;margin-bottom:10px;"><span class="spinner" style="width:30px;height:30px;border-width:4px;"></span></div>
-          <div id="loaderText">প্রসেসিং হচ্ছে...</div>
+          <div id="loaderText">Processing...</div>
         </div>
       </div>
 
@@ -158,12 +149,10 @@ nav{background:#1e293b;color:#fff;padding:12px 24px;display:flex;align-items:cen
 
   </div>
 
-  <!-- RIGHT SIDEBAR -->
   <div class="side-col" id="sidebar">
     
-    <!-- STEP 1: CROP & SIZE SETTINGS -->
     <div id="panelCrop" class="">
-      <div class="sec-title">📐 পাসপোর্ট সাইজ ও ক্রপ</div>
+      <div class="sec-title">📐 Passport Size &amp; Crop</div>
       
       <div class="preset-grid" style="margin-bottom:15px;">
         <div class="preset-btn active" onclick="setRatio(this, 35, 45)">
@@ -176,7 +165,7 @@ nav{background:#1e293b;color:#fff;padding:12px 24px;display:flex;align-items:cen
           <div class="p-name">📄 Stamp/ID</div><div class="p-size">25 × 35 mm</div>
         </div>
         <div class="preset-btn" onclick="setRatio(this, 0, 0)">
-          <div class="p-name">✂️ Free Crop</div><div class="p-size">নিজে সিলেক্ট করুন</div>
+          <div class="p-name">✂️ Free Crop</div><div class="p-size">Select manually</div>
         </div>
       </div>
 
@@ -192,32 +181,50 @@ nav{background:#1e293b;color:#fff;padding:12px 24px;display:flex;align-items:cen
         </div>
       </div>
 
-      <button class="btn btn-green" onclick="applyCrop()" style="font-size:15px;padding:12px;">✅ ক্রপ কনফার্ম করুন</button>
-      <button class="btn btn-secondary" style="margin-top:8px;" onclick="location.reload()">🔄 নতুন ছবি নিন</button>
+      <button class="btn btn-green" onclick="applyCrop()" style="font-size:15px;padding:12px;">✅ Confirm Crop</button>
+      <button class="btn btn-secondary" style="margin-top:8px;" onclick="location.reload()">🔄 Start Over</button>
     </div>
 
-    <!-- STEP 2: EDIT SETTINGS -->
     <div id="panelEdit" class="hidden">
       
-      <div class="sec-title">✂️ ব্যাকগ্রাউন্ড রিমুভাল (AI)</div>
+      <div class="sec-title">✂️ Background Removal (AI)</div>
       <button class="btn btn-red" id="bgRemBtn" onclick="removeBackgroundAI()">✨ Auto Remove BG (Free AI)</button>
-      <div style="font-size:11px;color:var(--muted);margin-top:5px;text-align:center;">ইন্টারনেট সংযোগ চালু রাখুন।</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:5px;text-align:center;">Keep your internet connection on.</div>
 
-      <div class="sec-title" style="margin-top:20px;">🎨 কালার পিকার ও ব্যাকগ্রাউন্ড</div>
-      <div class="color-wrap" style="background:#f8fafc;padding:10px;border-radius:10px;border:1px solid var(--border);">
-        <div class="swatch white active" style="background:#ffffff" onclick="setBgColor(this,'#ffffff')" title="White"></div>
+      <div class="sec-title" style="margin-top:20px;">🎨 Background Color</div>
+      <div class="color-wrap" id="bgColorWrap" style="background:#f8fafc;padding:10px;border-radius:10px;border:1px solid var(--border);">
+        <div class="swatch transparent active" id="swatchTransparent" onclick="setBgColor(this,'transparent')" title="Transparent (no background)"></div>
+        <div class="swatch white" style="background:#ffffff" onclick="setBgColor(this,'#ffffff')" title="White"></div>
         <div class="swatch" style="background:#dbeafe" onclick="setBgColor(this,'#dbeafe')" title="Light Blue"></div>
         <div class="swatch" style="background:#1d4ed8" onclick="setBgColor(this,'#1d4ed8')" title="Blue"></div>
         <div class="swatch" style="background:#dc2626" onclick="setBgColor(this,'#dc2626')" title="Red"></div>
         
-        <!-- CUSTOM COLOR PICKER (Rainbow Button) -->
         <div class="swatch" style="background:conic-gradient(red, yellow, lime, aqua, blue, magenta, red); position:relative; overflow:hidden;" title="Pick Custom Color">
           <input type="color" id="nativeColor" oninput="setBgColorCustom(this.value)" style="opacity:0; position:absolute; top:-10px; left:-10px; width:200%; height:200%; cursor:pointer;">
         </div>
-        <div style="font-size:12px; font-weight:700; color:var(--accent); margin-left:5px;">← কালার বাছুন</div>
+        <div style="font-size:12px; font-weight:700; color:var(--accent); margin-left:5px;">← Pick a color</div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">"Transparent" is selected by default after background removal — download PNG directly with no background if you want.</div>
+
+      <div class="sec-title" style="margin-top:20px;">🖼️ Photo Border</div>
+      <div id="strokeControls">
+        <div id="strokeActiveControls">
+          <div class="sl-row">
+            <span class="sl-label">Thickness</span>
+            <input type="range" min="0" max="20" value="0" id="sl_stroke" oninput="updateStroke()">
+            <span class="sl-val" id="v_stroke">0</span>
+          </div>
+          <div class="color-wrap" id="strokeColorWrap" style="margin-top:6px;">
+            <div class="swatch white" onclick="setStrokeColor(this,'#ffffff')" title="White border"></div>
+            <div class="swatch active" style="background:#000000" onclick="setStrokeColor(this,'#000000')" title="Black border"></div>
+            <div class="swatch" style="background:conic-gradient(red, yellow, lime, aqua, blue, magenta, red); position:relative; overflow:hidden;" title="Pick Custom Color">
+              <input type="color" id="strokeColorPicker" oninput="setStrokeColorCustom(this.value)" style="opacity:0; position:absolute; top:-10px; left:-10px; width:200%; height:200%; cursor:pointer;">
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="sec-title" style="margin-top:20px;">✨ অ্যাডভান্সড ফটো এনহ্যান্সমেন্ট</div>
+      <div class="sec-title" style="margin-top:20px;">✨ Advanced Photo Enhancement</div>
       <button class="btn btn-secondary" style="margin-bottom:10px; color:var(--accent); border-color:var(--accent);" onclick="autoEnhance()">🪄 Magic Auto Enhance</button>
       
       <div>
@@ -243,35 +250,32 @@ nav{background:#1e293b;color:#fff;padding:12px 24px;display:flex;align-items:cen
         </div>
       </div>
 
-      <!-- NEW: Single Photo Download directly on Edit Page -->
       <div style="margin-top:20px; padding-top:15px; border-top:1px solid var(--border);">
-        <div class="sec-title">⬇️ কুইক ডাউনলোড (সিঙ্গেল ছবি)</div>
+        <div class="sec-title">⬇️ Quick Download (Single Photo)</div>
         <div style="display:flex;gap:8px;">
-            <button class="btn btn-green" style="flex:1;" onclick="downloadSingleJPG()">📥 JPG সেভ</button>
+            <button class="btn btn-green" style="flex:1;" onclick="downloadSingleJPG()">📥 Save JPG</button>
             <button class="btn btn-secondary" style="flex:1;" onclick="downloadSinglePNG()">🖼️ PNG (No BG)</button>
         </div>
       </div>
 
-      <button class="btn btn-primary" style="margin-top:15px;font-size:14px;padding:12px;" onclick="goToPrint()">🖨️ আরও ছবি একসাথে প্রিন্ট করুন ➡️</button>
+      <button class="btn btn-primary" style="margin-top:15px;font-size:14px;padding:12px;" onclick="goToPrint()">🖨️ Print Multiple Photos Together ➡️</button>
     </div>
 
-    <!-- STEP 3: PRINT SETTINGS -->
     <div id="panelPrint" class="hidden">
-      <div class="sec-title">🖨️ পেপার সাইজ সিলেক্ট করুন</div>
+      <div class="sec-title">🖨️ Select Paper Size</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
         <button class="btn btn-secondary active" id="sheet4x6" onclick="setSheetSize(this, 102, 152)">4×6 inch</button>
         <button class="btn btn-secondary" id="sheetA4" onclick="setSheetSize(this, 210, 297)">A4 Size</button>
       </div>
 
-      <div class="sec-title">⬇️ প্রিন্ট শিট এক্সপোর্ট</div>
+      <div class="sec-title">⬇️ Export Print Sheet</div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button class="btn btn-primary" style="font-size:15px;padding:12px;" onclick="downloadJPG()">📥 প্রিন্ট লেআউট (JPG) ডাউনলোড</button>
+        <button class="btn btn-primary" style="font-size:15px;padding:12px;" onclick="downloadJPG()">📥 Download Print Layout (JPG)</button>
       </div>
 
-      <button class="btn btn-secondary" style="margin-top:20px;" onclick="location.reload()">🔄 নতুন কাজ শুরু করুন</button>
+      <button class="btn btn-secondary" style="margin-top:20px;" onclick="location.reload()">🔄 Start a New Job</button>
     </div>
 
-    <!-- Status Alert -->
     <div id="statusBox" class="status"></div>
 
   </div>
@@ -285,7 +289,9 @@ let currentFileUrl = null;
 let croppedCanvasData = null; // Canvas storing the cropped original
 let noBgImg = null;           // Image object storing BG removed version
 let hasBgRemoved = false;
-let bgColor = '#ffffff';
+let bgColor = 'transparent';  // Default transparent
+let strokeWidth = 0;
+let strokeColor = '#000000';  // Default black stroke
 
 // Print Sheet sizes
 let sheetW_mm = 102, sheetH_mm = 152; // default 4x6
@@ -425,6 +431,36 @@ function renderEditCanvas() {
   }
 
   ctx.filter = 'none';
+
+  // 4. Photo border (Stroke)
+  let strokeW = parseInt(document.getElementById('sl_stroke').value) || 0;
+  let strokeC = strokeColor;
+  
+  if (strokeW > 0) {
+    ctx.lineWidth = strokeW;
+    ctx.strokeStyle = strokeC;
+    // Drawn inwards so it doesn't get clipped by canvas bounds
+    ctx.strokeRect(strokeW/2, strokeW/2, editCanvas.width - strokeW, editCanvas.height - strokeW);
+  }
+}
+
+function updateStroke() {
+  strokeWidth = parseInt(document.getElementById('sl_stroke').value) || 0;
+  document.getElementById('v_stroke').innerText = strokeWidth;
+  renderEditCanvas();
+}
+
+function setStrokeColor(el, color) {
+  el.parentElement.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  strokeColor = color;
+  renderEditCanvas();
+}
+
+function setStrokeColorCustom(color) {
+  document.querySelectorAll('#strokeActiveControls .swatch').forEach(s=>s.classList.remove('active'));
+  strokeColor = color;
+  renderEditCanvas();
 }
 
 function updateFilters() {
@@ -444,14 +480,14 @@ function autoEnhance() {
 }
 
 function setBgColor(el, color) {
-  document.querySelectorAll('.color-wrap .swatch').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#bgColorWrap .swatch').forEach(s=>s.classList.remove('active'));
   if(el) el.classList.add('active');
   bgColor = color;
   renderEditCanvas();
 }
 
 function setBgColorCustom(color) {
-  document.querySelectorAll('.color-wrap .swatch').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#bgColorWrap .swatch').forEach(s=>s.classList.remove('active'));
   bgColor = color;
   renderEditCanvas();
 }
@@ -459,20 +495,20 @@ function setBgColorCustom(color) {
 /* Local AI BG Removal */
 async function removeBackgroundAI() {
   loader.classList.remove('hidden');
-  document.getElementById('loaderText').innerText = "AI মডেল লোড হচ্ছে (প্রথমবার সময় লাগতে পারে)...";
+  document.getElementById('loaderText').innerText = "Loading AI model (first time may take a moment)...";
   document.getElementById('bgRemBtn').disabled = true;
 
   try {
     const blob = await new Promise(res => croppedCanvasData.toBlob(res, 'image/jpeg', 1.0));
     
-    const mod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal/+esm');
+    const mod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.7/+esm');
     const removeBackground = mod.default || mod.removeBackground;
 
     const resultBlob = await removeBackground(blob, {
         progress: (key, current, total) => {
             if(total) {
                 let pct = Math.round((current / total) * 100);
-                document.getElementById('loaderText').innerText = `প্রসেস হচ্ছে: ${pct}%`;
+                document.getElementById('loaderText').innerText = `Processing: ${pct}%`;
             }
         }
     });
@@ -481,9 +517,15 @@ async function removeBackgroundAI() {
     noBgImg = new Image();
     noBgImg.onload = () => {
       hasBgRemoved = true;
+      
+      // Force background to transparent after removal
+      bgColor = 'transparent';
+      document.querySelectorAll('#bgColorWrap .swatch').forEach(s=>s.classList.remove('active'));
+      document.getElementById('swatchTransparent').classList.add('active');
+
       renderEditCanvas();
       loader.classList.add('hidden');
-      showStatus('✅ ব্যাকগ্রাউন্ড রিমুভ সফল হয়েছে!');
+      showStatus('✅ Background removed successfully!');
     };
     noBgImg.src = url;
 
@@ -491,7 +533,7 @@ async function removeBackgroundAI() {
     console.error(e);
     loader.classList.add('hidden');
     document.getElementById('bgRemBtn').disabled = false;
-    showStatus('❌ এরর: ইন্টারনেট স্পিড চেক করুন বা আবার চেষ্টা করুন।');
+    showStatus('❌ Error: check your internet connection and try again.');
   }
 }
 
@@ -536,21 +578,16 @@ function generatePrintSheet() {
       let x = startX + c * (pW + gap);
       let y = startY + r * (pH + gap);
       
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x, y, pW, pH);
       ctx.drawImage(editCanvas, x, y, pW, pH);
     }
   }
-  showStatus(`✅ প্রিন্ট শিট রেডি! মোট ছবি: ${cols*rows} টি।`);
+  showStatus(`✅ Print sheet ready! Total photos: ${cols*rows}.`);
 }
 
 /* ── DOWNLOADS ── */
 
 // Quick Download from Edit Page
 function downloadSingleJPG() {
-  // If BG is transparent and they want JPG, Canvas natively fills black.
-  // To be safe, if transparent is selected but they download JPG, fill white temporarily.
   let isTransparent = (bgColor === 'transparent');
   if(isTransparent) {
       const tempCanvas = document.createElement('canvas');
