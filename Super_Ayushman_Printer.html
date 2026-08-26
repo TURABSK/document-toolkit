@@ -1,538 +1,562 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayushman Auto-Fit PVC Printer (Front & Back Perfect)</title>
-    <!-- PDF.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <!-- JSZip Library (For saving files) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #e9ecef; margin: 0; padding: 20px; text-align: center; }
-        
-        .header { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { margin: 0; color: #d9534f; font-size: 20px; }
-        .sub { color: #555; font-size: 13px; margin-top: 6px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pragati Smart Card Studio — Multi Document Auto Fit Printer</title>
 
-        .btn { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; margin: 5px; font-weight: bold; }
-        .btn:hover { background: #218838; }
-        .btn-print { background: #007bff; }
-        .btn-print:hover { background: #0056b3; }
-        .btn-save { background: #6f42c1; } 
-        .btn-save:hover { background: #5a32a3; }
-        .btn-del { background: #dc3545; }
-        .btn:disabled { background: #adb5bd; cursor: not-allowed; }
-        
-        select.quality-select { padding: 9px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; cursor: pointer; color: #333; margin-right: 5px; vertical-align: middle; }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-        /* Processing indicator */
-        .processing-box {
-            display: none;
-            margin-top: 10px;
-            padding: 10px 16px;
-            background: #fff3cd;
-            border: 1px solid #ffeeba;
-            color: #856404;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 13px;
-        }
-
-        /* A4 */
-        #a4-page {
-            width: 210mm; min-height: 297mm; background: white;
-            margin: 0 auto; padding: 8mm;
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
-            display: flex; flex-direction: column; gap: 6mm;
-        }
-
-        .card-pair {
-            display: flex; gap: 8mm; align-items: flex-start;
-            padding: 10px; border: 2px dashed #bbb;
-            background: #f8f9fa; border-radius: 6px;
-        }
-
-        /* PVC card */
-        .pvc-box {
-            width: 85.6mm; height: 54mm;
-            border: 1px solid #333;
-            overflow: hidden; position: relative;
-            background: #fff; flex-shrink: 0;
-        }
-
-        .pvc-img {
-            position: absolute;
-        }
-
-        /* Controls */
-        .controls {
-            flex: 1; min-width: 0;
-            background: #fff; border: 1px solid #ddd;
-            border-radius: 6px; padding: 10px; font-size: 12px;
-        }
-        .ctrl-title {
-            font-weight: bold; background: #17a2b8; color: white;
-            padding: 4px 8px; border-radius: 4px; margin-bottom: 8px;
-            display: inline-block; font-size: 12px;
-        }
-        .slider-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-        .slider-row label { width: 90px; text-align: right; font-weight: bold; color: #444; white-space: nowrap; }
-        .slider-row input[type=range] { flex: 1; cursor: pointer; }
-        .slider-row .val { width: 42px; text-align: right; color: #007bff; font-weight: bold; font-size: 11px; }
-        .pair-actions { display: flex; flex-direction: column; gap: 6px; justify-content: flex-start; }
-        .pair-source { font-size: 10px; color: #888; margin-top: 4px; }
-
-        @media print {
-            body { padding: 0; background: white; }
-            .header, .no-print, .controls, .pair-actions { display: none !important; }
-            #a4-page { box-shadow: none; padding: 5mm; gap: 4mm; }
-            .card-pair { border: none; padding: 0; background: transparent; gap: 5mm; }
-            .pvc-box { border: 1px solid #888; }
-        }
-    </style>
+<style>
+*{box-sizing:border-box}
+:root{
+  --primary:#2563eb;--primary2:#7c3aed;--green:#16a34a;--red:#dc2626;
+  --dark:#0f172a;--muted:#64748b;--bg:#eef4ff;--card:#fff;--line:#dbe4f0
+}
+body{margin:0;font-family:Arial,"Noto Sans Bengali",sans-serif;background:linear-gradient(135deg,#eef4ff,#f8f5ff);color:var(--dark)}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.header{padding:18px 20px;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.head-inner{max-width:1250px;margin:auto;display:flex;justify-content:space-between;gap:15px;align-items:center}
+.brand{font-size:22px;font-weight:800;color:#2563eb}.brand span{color:#7c3aed}
+.status{font-size:12px;color:var(--muted);background:#f1f5f9;padding:8px 12px;border-radius:999px}
+.wrap{max-width:1250px;margin:20px auto;padding:0 15px}
+.hero{text-align:center;margin:10px 0 22px}.hero h1{margin:0 0 8px;font-size:28px}.hero p{margin:0;color:var(--muted);font-size:14px}
+.modebar{display:flex;gap:8px;overflow:auto;background:#fff;border:1px solid var(--line);padding:8px;border-radius:14px;margin-bottom:16px}
+.mode{border:0;background:#f1f5f9;color:#334155;padding:11px 16px;border-radius:10px;font-weight:700;white-space:nowrap}
+.mode.active{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff}
+.upload{background:#fff;border:2px dashed #93c5fd;border-radius:20px;padding:28px;text-align:center;transition:.2s;box-shadow:0 8px 30px rgba(37,99,235,.07)}
+.upload.drag{border-color:#2563eb;background:#eff6ff;transform:scale(1.01)}
+.upload-icon{font-size:44px}.upload h2{margin:8px 0 5px}.upload p{color:var(--muted);margin:5px 0 18px}
+.big-btn{border:0;color:#fff;background:linear-gradient(135deg,#2563eb,#7c3aed);font-size:18px;font-weight:800;padding:16px 30px;border-radius:13px;box-shadow:0 8px 20px rgba(37,99,235,.25)}
+.big-btn:hover{transform:translateY(-1px)}
+.small-note{font-size:12px;color:#64748b;margin-top:10px}
+#file-input{display:none}
+.smart-panel{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+.panel h3{margin:0 0 10px;font-size:15px}.panel p{margin:5px 0;color:var(--muted);font-size:12px}
+select,input[type=text]{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:9px;background:#fff}
+.checks{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:8px 10px;border-radius:9px;background:#f1f5f9;font-size:12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+.btn{border:0;border-radius:9px;padding:10px 14px;font-weight:700;color:#fff;background:#16a34a}
+.btn.blue{background:#2563eb}.btn.purple{background:#7c3aed}.btn.red{background:#dc2626}.btn.gray{background:#475569}.btn:disabled{opacity:.5;cursor:not-allowed}
+.progress{display:none;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px 14px;border-radius:10px;text-align:center;font-weight:700;margin:12px 0}
+#workspace{margin-top:18px}
+.a4{width:210mm;min-height:297mm;background:#fff;margin:0 auto;padding:7mm;box-shadow:0 0 20px rgba(15,23,42,.15);border-radius:4px}
+.pair{display:flex;gap:8mm;align-items:flex-start;padding:10px;border:2px dashed #cbd5e1;background:#f8fafc;border-radius:10px;margin-bottom:8mm;position:relative}
+.pair-info{position:absolute;top:8px;left:8px;background:#0f172a;color:#fff;padding:4px 8px;border-radius:6px;font-size:10px;z-index:4}
+.box-wrap{display:flex;flex-direction:column;gap:6px}
+.pvc{width:85.6mm;height:54mm;border:1px solid #333;overflow:hidden;position:relative;background:#fff;flex-shrink:0}
+.pvc img{
+ position:absolute;
+ display:block;
+ max-width:none;
+ max-height:none;
+ transform:none;
+ object-fit:fill;
+ transform-origin:top left;
+}
+.controls{background:#fff;border:1px solid #dbe4f0;border-radius:9px;padding:9px;font-size:11px;min-width:250px}
+.controls strong{display:block;background:#0ea5e9;color:#fff;padding:5px 7px;border-radius:5px;margin-bottom:7px}
+.row{display:grid;grid-template-columns:72px 1fr 48px;gap:5px;align-items:center;margin:5px 0}.row label{font-weight:700;color:#475569}.row output{text-align:right;color:#2563eb;font-weight:700}
+input[type=range]{width:100%}
+.detect{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}.badge{padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;background:#dcfce7;color:#166534}.badge.warn{background:#fef3c7;color:#92400e}
+.empty{padding:55px 20px;text-align:center;color:#94a3b8}.empty b{color:#64748b}
+footer{text-align:center;padding:20px;color:#64748b;font-size:12px}
+@media(max-width:900px){.smart-panel{grid-template-columns:1fr}.a4{width:100%;min-height:auto;padding:15px}.pair{flex-direction:column}.controls{min-width:0;width:100%}.pvc{max-width:100%;width:342px;height:216px}.head-inner{flex-direction:column;align-items:flex-start}}
+@media print{body{background:#fff}.header,.hero,.modebar,.upload,.smart-panel,.toolbar,.progress,footer,.controls,.pair-info,.no-print{display:none!important}.wrap{margin:0;padding:0}.a4{box-shadow:none;width:210mm;min-height:297mm;padding:5mm}.pair{border:0;padding:0;background:#fff;break-inside:avoid}}
+</style>
 </head>
+
 <body>
+<header class="header no-print">
+  <div class="head-inner">
+    <div class="brand">PRAGATI <span>SMART CARD STUDIO</span></div>
+    <div class="status" id="status">● Ready — Smart Auto Detect চালু</div>
+  </div>
+</header>
 
-<div class="header no-print">
-    <h2>💳 প্রগতি টেলিকম — Ayushman Auto-Fit PVC Printer</h2>
-    <div class="sub">
-        PDF আপলোড করুন → সামনে ও পেছনের দিক দুটোই নিজে থেকে নিখুঁত fit হবে।<br>
-        <b>সাপোর্ট করে:</b> ১টা ২-পেজ PDF (পেজ ১=সামনে, পেজ ২=পেছনে) • একসাথে বাছাই করা ২টা ১-পেজ ফাইল (জোড়ায় জোড়ায়) • ১টা পেজে সামনে+পেছনে উপর-নিচ করে রাখা স্ক্যান।<br>
-        প্রয়োজনে slider দিয়ে fine-tune করে সরাসরি প্রিন্ট বা সেভ করুন।
-    </div>
-    
-    <!-- Updated Upload & Save Buttons Section -->
-    <div style="margin-top:10px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 5px;">
-        <input type="file" id="file-input" accept="application/pdf" style="display:none" multiple>
-        <button class="btn" id="upload-btn" onclick="document.getElementById('file-input').click()">+ PDF আপলোড করুন</button>
-        
-        <span style="border-left: 2px solid #ccc; height: 30px; margin: 0 10px;"></span>
-        
-        <select id="save-quality" class="quality-select">
-            <option value="1.0">HD Quality</option>
-            <option value="0.8" selected>Medium Quality</option>
-        </select>
-        <button class="btn btn-save" id="save-btn" onclick="saveToFolder()">🗂️ ফোল্ডারে সেভ করুন</button>
-        
-        <span style="border-left: 2px solid #ccc; height: 30px; margin: 0 10px;"></span>
-        
-        <button class="btn btn-print" onclick="window.print()">🖨️ Print করুন</button>
-    </div>
-    <div class="processing-box no-print" id="processing-box">⚙️ প্রসেস করা হচ্ছে... একটু অপেক্ষা করুন (বড় ফাইলে কয়েক সেকেন্ড লাগতে পারে)</div>
-</div>
+<main class="wrap">
+  <section class="hero no-print">
+    <h1>Smart Multi-Document Printer</h1>
+    <p>ফাইল দিন — সফটওয়্যার নিজে থেকে ডকুমেন্ট চিনে, প্রয়োজনীয় অংশ বের করে, সঠিক মাপ ও Auto-Fit প্রস্তাব করবে।</p>
+  </section>
 
-<div id="a4-page"></div>
+  <div class="modebar no-print">
+    <button class="mode active" data-mode="auto">✨ Smart Auto</button>
+    <button class="mode" data-mode="ayushman">💳 Ayushman Card</button>
+    <button class="mode" data-mode="ration">🍚 Ration Card</button>
+    <button class="mode" data-mode="pan">🪪 PAN Card</button>
+    <button class="mode" data-mode="aadhaar">🆔 Aadhaar Card</button>
+    <button class="mode" data-mode="custom">⚙️ Custom</button>
+  </div>
+
+  <section class="upload no-print" id="dropzone">
+    <div class="upload-icon">📤</div>
+    <h2>ফাইল এখানে Drag & Drop করুন</h2>
+    <p>PDF, JPG, JPEG, PNG — একসাথে একাধিক ফাইল দেওয়া যাবে</p>
+    <input id="file-input" type="file" multiple accept=".pdf,image/jpeg,image/png,image/webp">
+    <button class="big-btn" id="upload-btn">⬆️ ফাইল আপলোড করুন</button>
+    <div class="small-note">একসাথে অনেকগুলো কার্ডের কাজ করার জন্য Multi-Task Mode সক্রিয়।</div>
+  </section>
+
+  <section class="smart-panel no-print">
+    <div class="panel">
+      <h3>🧠 Smart Detection</h3>
+      <p>Auto Mode-এ OCR ও ফাইলের তথ্য দেখে ডকুমেন্টের ধরন অনুমান করা হবে।</p>
+      <div class="checks">
+        <span class="chip">✓ PDF Analysis</span>
+        <span class="chip">✓ OCR Text Scan</span>
+        <span class="chip">✓ Card Boundary Detect</span>
+        <span class="chip">✓ Auto Crop</span>
+        <span class="chip">✓ Perspective-safe Fit</span><span class="chip">✓ Aadhaar Exact Layout</span><span class="chip">✓ PAN Exact Template</span>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>📐 Output Profile</h3>
+      <select id="profile">
+        <option value="auto">Smart Auto — নিজে নির্বাচন করবে</option>
+        <option value="pvc">PVC Card — 85.6 × 54 mm</option>
+        <option value="a4">A4 Document</option>
+        <option value="custom">Custom — বর্তমানে PVC canvas</option>
+      </select>
+      <p id="profile-help">Auto mode-এ ডকুমেন্ট অনুযায়ী প্রোফাইল নির্বাচন করা হবে।</p>
+    </div>
+  </section>
+
+  <div class="toolbar no-print">
+    <button class="btn blue" id="add-btn">➕ আরও ফাইল</button>
+    <button class="btn gray" id="reset-btn">↻ সব মুছুন</button>
+    <button class="btn purple" id="save-btn">🗂️ ফোল্ডারে সেভ</button>
+    <button class="btn blue" onclick="window.print()">🖨️ Print</button>
+  </div>
+
+  <div class="progress no-print" id="progress">⚙️ <span id="progress-text">প্রসেসিং...</span></div>
+
+  <section id="workspace">
+    <div class="a4" id="a4-page">
+      <div class="empty" id="empty">
+        <div style="font-size:50px">🪪</div>
+        <b>এখনও কোনো ফাইল আপলোড হয়নি</b><br>
+        PDF বা ছবি Drag & Drop করুন।
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="no-print">
+  Pragati Telecom • Smart Multi-Document Printer • Files are processed locally in your browser where possible.
+</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-const fileInput      = document.getElementById('file-input');
-const a4Page         = document.getElementById('a4-page');
-const processingBox  = document.getElementById('processing-box');
-const uploadBtn      = document.getElementById('upload-btn');
-const saveBtn        = document.getElementById('save-btn'); // Added save button reference
+const $=id=>document.getElementById(id);
+const input=$('file-input'), drop=$('dropzone'), page=$('a4-page');
+let mode='auto', counter=0, cards=[], ocrWorker=null;
 
-// ডেটা সেভ রাখার জন্য গ্লোবাল অ্যারে
-let allCardsData = [];
+const PROFILES={
+  ayushman:{name:'Ayushman Card',type:'PVC',keywords:['ayushman','pmjay','health','beneficiary','national health'],ratio:85.6/54},
+  pan:{name:'PAN Card',type:'PVC',keywords:['income tax','permanent account number','pan','govt of india'],ratio:85.6/54},
+  aadhaar:{name:'Aadhaar Card',type:'PVC',keywords:['aadhaar','unique identification authority','uidai','government of india'],ratio:85.6/54},
+  ration:{name:'Ration Card',type:'PVC',keywords:['ration','food','consumer','family member','nfsa','pds'],ratio:210/297},
+  custom:{name:'Custom',type:'PVC',keywords:[],ratio:85.6/54}
+};
 
-function showProcessing(on) {
-    processingBox.style.display = on ? 'block' : 'none';
-    uploadBtn.disabled = on;
-    saveBtn.disabled = on;
+function setStatus(t){$('status').textContent='● '+t}
+function busy(on,text='প্রসেসিং...'){
+ $('progress').style.display=on?'block':'none';
+ $('progress-text').textContent=text;
+ $('upload-btn').disabled=on;
 }
-
-// ── Smart Detect bounds separating Top and Bottom Half (or whole page) ──
-function detectContentBounds(canvas, section = 'all', stride = 2) {
-    const ctx  = canvas.getContext('2d');
-    const w    = canvas.width;
-    const h    = canvas.height;
-    const data = ctx.getImageData(0, 0, w, h).data;
-
-    const isContent = (i) => data[i] < 240 || data[i+1] < 240 || data[i+2] < 240;
-
-    let minX = w, maxX = 0, minY = h, maxY = 0;
-
-    let startY = 0;
-    let endY = h;
-    if (section === 'top') { endY = Math.floor(h / 2); }
-    if (section === 'bottom') { startY = Math.floor(h / 2); }
-
-    for (let y = startY; y < endY; y += stride) {
-        for (let x = 0; x < w; x += stride) {
-            const i = (y * w + x) * 4;
-            if (isContent(i)) {
-                if (x < minX) minX = x;
-                if (x > maxX) maxX = x;
-                if (y < minY) minY = y;
-                if (y > maxY) maxY = y;
-            }
-        }
-    }
-
-    if (maxX <= minX || maxY <= minY) {
-        return { x: 0, y: startY, w: w, h: endY - startY };
-    }
-
-    const PAD = stride * 2;
-    return {
-        x: Math.max(0, minX - PAD),
-        y: Math.max(0, minY - PAD),
-        w: Math.min(w - Math.max(0, minX - PAD), maxX - minX + PAD * 2),
-        h: Math.min(h - Math.max(0, minY - PAD), maxY - minY + PAD * 2),
-    };
+function currentProfile(){
+ const p=$('profile').value;
+ if(p==='auto') return null;
+ return PROFILES[p]||PROFILES.custom;
 }
+document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));
+ b.classList.add('active'); mode=b.dataset.mode;
+ if(mode!=='auto') $('profile').value=mode==='custom'?'custom':mode;
+ setStatus(mode==='auto'?'Ready — Smart Auto Detect চালু':PROFILES[mode].name+' mode');
+});
+$('profile').onchange=()=>setStatus('Output profile: '+$('profile').selectedOptions[0].text);
 
-// ── Calculate auto-fit CSS values ──
-function calcAutoFit(canvas, bounds) {
-    const contentWRatio = bounds.w / canvas.width;  
-    const contentHRatio = bounds.h / canvas.height;
+$('upload-btn').onclick=()=>input.click();
+$('add-btn').onclick=()=>input.click();
+input.onchange=e=>processFiles([...e.target.files]);
 
-    const imgW = 100 / contentWRatio;   
-    const imgH = 100 / contentHRatio;
-
-    const imgLeft = -(bounds.x / canvas.width) * imgW;
-    const imgTop  = -(bounds.y / canvas.height) * imgH;
-
-    return {
-        w:    +imgW.toFixed(3),
-        h:    +imgH.toFixed(3),
-        left: +imgLeft.toFixed(3),
-        top:  +imgTop.toFixed(3),
-    };
-}
-
-// ── Load a PDF file and render a given page to canvas ──
-async function loadPdf(file) {
-    const buf = await file.arrayBuffer();
-    return await pdfjsLib.getDocument({ data: buf }).promise;
-}
-
-async function renderPage(pdf, pageNum, scale = 4.0) {
-    const page = await pdf.getPage(pageNum);
-    const vp   = page.getViewport({ scale });
-    const cv   = document.createElement('canvas');
-    cv.width   = vp.width;
-    cv.height  = vp.height;
-    const ctx  = cv.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, cv.width, cv.height);
-    await page.render({ canvasContext: ctx, viewport: vp }).promise;
-    return cv;
-}
-
-function fitFromCanvas(canvas, section) {
-    const bounds = detectContentBounds(canvas, section);
-    return calcAutoFit(canvas, bounds);
-}
-
-// ── File input handler ──
-fileInput.addEventListener('change', async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    showProcessing(true);
-    try {
-        let i = 0;
-        while (i < files.length) {
-            const file = files[i];
-            let pdf;
-            try {
-                pdf = await loadPdf(file);
-            } catch (err) {
-                console.error('Could not open PDF:', file.name, err);
-                alert(`❌ "${file.name}" খোলা যায়নি — এটা কি বৈধ PDF ফাইল?`);
-                i += 1;
-                continue;
-            }
-
-            // ক্লিন ফাইলের নাম (সেভ করার সুবিধার জন্য)
-            const cleanFileName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-z0-9A-Z]/gi, '_');
-
-            if (pdf.numPages >= 2) {
-                const frontCanvas = await renderPage(pdf, 1);
-                const backCanvas  = await renderPage(pdf, 2);
-                const fitFront = fitFromCanvas(frontCanvas, 'all');
-                const fitBack  = fitFromCanvas(backCanvas, 'all');
-                createCardPair(
-                    frontCanvas.toDataURL('image/jpeg', 0.98), fitFront,
-                    backCanvas.toDataURL('image/jpeg', 0.98), fitBack,
-                    `${file.name} (পেজ ১+২)`, cleanFileName
-                );
-                i += 1;
-
-            } else if (files.length - i >= 2) {
-                const file2 = files[i + 1];
-                let pdf2;
-                try {
-                    pdf2 = await loadPdf(file2);
-                } catch (err) {
-                    console.error('Could not open PDF:', file2.name, err);
-                    alert(`❌ "${file2.name}" খোলা যায়নি — এটা কি বৈধ PDF ফাইল? এই ফাইলটা বাদ দেওয়া হলো।`);
-                    const canvas = await renderPage(pdf, 1);
-                    const fitFront = fitFromCanvas(canvas, 'top');
-                    const fitBack  = fitFromCanvas(canvas, 'bottom');
-                    const src = canvas.toDataURL('image/jpeg', 0.98);
-                    createCardPair(src, fitFront, src, fitBack, file.name, cleanFileName);
-                    i += 1;
-                    continue;
-                }
-                const frontCanvas = await renderPage(pdf, 1);
-                const backCanvas  = await renderPage(pdf2, 1);
-                const fitFront = fitFromCanvas(frontCanvas, 'all');
-                const fitBack  = fitFromCanvas(backCanvas, 'all');
-                createCardPair(
-                    frontCanvas.toDataURL('image/jpeg', 0.98), fitFront,
-                    backCanvas.toDataURL('image/jpeg', 0.98), fitBack,
-                    `${file.name} + ${file2.name}`, cleanFileName
-                );
-                i += 2;
-
-            } else {
-                const canvas = await renderPage(pdf, 1);
-                const fitFront = fitFromCanvas(canvas, 'top');
-                const fitBack  = fitFromCanvas(canvas, 'bottom');
-                const src = canvas.toDataURL('image/jpeg', 0.98);
-                createCardPair(src, fitFront, src, fitBack, `${file.name} (উপর/নিচ ভাগ করা)`, cleanFileName);
-                i += 1;
-            }
-        }
-    } catch (err) {
-        console.error(err);
-        alert('❌ প্রসেস করতে সমস্যা হয়েছে: ' + (err && err.message ? err.message : err));
-    } finally {
-        showProcessing(false);
-        fileInput.value = '';
-    }
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag')}));
+drop.addEventListener('drop',e=>{
+ const files=[...e.dataTransfer.files].filter(f=>/pdf|image\/(jpeg|png|webp)/i.test(f.type)||/\.pdf$/i.test(f.name));
+ if(files.length) processFiles(files);
 });
 
-// ── Create a front+back card pair ──
-let pairCounter = 0;
-function createCardPair(frontSrc, fitFront, backSrc, fitBack, label, fileName) {
-    const id = ++pairCounter;
-    
-    // সেভ করার জন্য ডেটা সংরক্ষণ
-    if (!fileName) fileName = "Card_" + id;
-    allCardsData.push({ id, frontSrc, backSrc, fileName });
+$('reset-btn').onclick=()=>{
+ cards=[]; page.innerHTML='<div class="empty" id="empty"><div style="font-size:50px">🪪</div><b>এখনও কোনো ফাইল আপলোড হয়নি</b><br>PDF বা ছবি Drag & Drop করুন।</div>';
+ setStatus('Ready — সব কাজ পরিষ্কার করা হয়েছে');
+};
 
-    const pair = document.createElement('div');
-    pair.className = 'card-pair';
-    pair.id = 'pair-' + id;
+function cleanName(n){return n.replace(/\.[^/.]+$/,'').replace(/[^\w\-]+/g,'_').slice(0,80)||'Card'}
 
-    const frontId = `img-${id}-front`;
-    const backId  = `img-${id}-back`;
+async function pdfDoc(file){return pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise}
 
-    const frontEl = makeCardBox(frontId, frontSrc, fitFront.w, fitFront.h, fitFront.left, fitFront.top, 'সামনে (Front)', fitFront);
-    const backEl  = makeCardBox(backId,  backSrc,  fitBack.w,  fitBack.h,  fitBack.left,  fitBack.top,  'পেছনে (Back)',  fitBack);
-
-    const actions = document.createElement('div');
-    actions.className = 'pair-actions no-print';
-    actions.innerHTML = `
-        <div style="font-size:11px;color:#666;max-width:80px;text-align:center;word-break:break-all">${label}</div>
-        <button class="btn btn-del" onclick="deletePair(${id})" style="font-size:12px;padding:6px 10px;color:white;border:none;border-radius:4px;cursor:pointer;">❌ মুছুন</button>
-    `;
-
-    pair.appendChild(frontEl);
-    pair.appendChild(backEl);
-    pair.appendChild(actions);
-    a4Page.appendChild(pair);
+async function renderPdfPage(pdf,n=1,scale=3){
+ const p=await pdf.getPage(n), v=p.getViewport({scale});
+ const c=document.createElement('canvas'); c.width=v.width;c.height=v.height;
+ const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+ await p.render({canvasContext:ctx,viewport:v}).promise;return c;
+}
+function imageCanvas(file){
+ return new Promise((res,rej)=>{
+  const im=new Image(); im.onload=()=>{
+   const c=document.createElement('canvas'); const max=2200;
+   const sc=Math.min(1,max/Math.max(im.width,im.height));
+   c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
+   c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c);
+  };im.onerror=rej;im.src=URL.createObjectURL(file);
+ });
 }
 
-// ── Build a single PVC box with sliders ──
-function makeCardBox(imgId, imgSrc, w, h, left, top, title, originalFit) {
-    const wrap = document.createElement('div');
-    wrap.style.display = 'flex'; wrap.style.flexDirection = 'column'; wrap.style.alignItems = 'flex-start';
 
-    const box = document.createElement('div');
-    box.className = 'pvc-box';
-
-    const img = document.createElement('img');
-    img.id        = imgId;
-    img.src       = imgSrc;
-    img.className = 'pvc-img';
-    applyFit(img, w, h, left, top);
-    box.appendChild(img);
-
-    const ctrl = document.createElement('div');
-    ctrl.className = 'controls no-print';
-
-    const sliders = [
-        { label: 'চওড়া ↔',   key: 'w',    min: 50,   max: 800,  step: 0.1, val: w    },
-        { label: 'লম্বা ↕',   key: 'h',    min: 50,   max: 1000, step: 0.1, val: h    },
-        { label: 'বামে→ডানে', key: 'left', min: -700, max: 100,  step: 0.1, val: left },
-        { label: 'উপরে→নিচে', key: 'top',  min: -900, max: 100,  step: 0.1, val: top  },
-    ];
-
-    const state = { w, h, left, top };
-
-    ctrl.innerHTML = `<div class="ctrl-title">${title}</div>`;
-
-    sliders.forEach(s => {
-        const row = document.createElement('div');
-        row.className = 'slider-row';
-
-        const lbl   = document.createElement('label'); lbl.textContent = s.label;
-        const range = document.createElement('input'); range.type = 'range';
-        const clampedVal = Math.min(s.max, Math.max(s.min, s.val));
-        range.min   = s.min; range.max = s.max; range.step = s.step; range.value = clampedVal;
-        const valSpan = document.createElement('span'); valSpan.className = 'val';
-        valSpan.textContent = s.val.toFixed(1) + '%';
-
-        range.addEventListener('input', () => {
-            state[s.key]      = parseFloat(range.value);
-            valSpan.textContent = state[s.key].toFixed(1) + '%';
-            applyFit(img, state.w, state.h, state.left, state.top);
-        });
-
-        row.appendChild(lbl); row.appendChild(range); row.appendChild(valSpan);
-        ctrl.appendChild(row);
-    });
-
-    const resetBtn = document.createElement('button');
-    resetBtn.textContent = '🔄 Auto-fit Reset';
-    resetBtn.style.cssText = 'margin-top:6px;font-size:11px;padding:4px 10px;background:#6c757d;color:white;border:none;border-radius:4px;cursor:pointer;width:100%;';
-    resetBtn.onclick = () => {
-        state.w = originalFit.w; state.h = originalFit.h; state.left = originalFit.left; state.top = originalFit.top;
-        ctrl.querySelectorAll('input[type=range]').forEach((r, i) => {
-            const keys = ['w','h','left','top'];
-            const clamped = Math.min(parseFloat(r.max), Math.max(parseFloat(r.min), state[keys[i]]));
-            r.value = clamped;
-            r.nextSibling.textContent = state[keys[i]].toFixed(1) + '%';
-        });
-        applyFit(img, originalFit.w, originalFit.h, originalFit.left, originalFit.top);
-    };
-    ctrl.appendChild(resetBtn);
-
-    wrap.appendChild(box);
-    wrap.appendChild(ctrl);
-    return wrap;
+function isRationGreen(r,g,b){
+ return g>90 && g>r*1.08 && g>b*0.85 && (g-r)>15;
+}
+function projectionRuns(arr, threshold){
+ const runs=[]; let start=-1;
+ for(let i=0;i<arr.length;i++){
+  if(arr[i]>=threshold && start<0) start=i;
+  if((arr[i]<threshold || i===arr.length-1) && start>=0){
+   const end=(arr[i]>=threshold&&i===arr.length-1)?i:i-1;
+   if(end-start>=2) runs.push([start,end]);
+   start=-1;
+  }
+ }
+ return runs;
 }
 
-function applyFit(img, w, h, left, top) {
-    img.style.width  = w     + '%';
-    img.style.height = h     + '%';
-    img.style.left   = left + '%';
-    img.style.top    = top  + '%';
+// Improved Ration Card detection for West Bengal / Digital e-Ration cards
+function extractRationCards(c){
+ const w=c.width, h=c.height, ctx=c.getContext('2d'), d=ctx.getImageData(0,0,w,h).data;
+ const y0=Math.floor(h*0.40), step=3;
+ const rows=new Array(Math.ceil((h-y0)/step)).fill(0);
+ 
+ for(let yy=y0; yy<h; yy+=step){
+  let n=0;
+  for(let x=0; x<w; x+=step){
+   const i=(yy*w+x)*4;
+   if(isRationGreen(d[i], d[i+1], d[i+2])) n++;
+  }
+  rows[Math.floor((yy-y0)/step)]=n;
+ }
+ 
+ const rr=projectionRuns(rows, Math.max(5, Math.floor(w/step*0.02)));
+ if(!rr.length){
+   // Fallback layout if specific green rows are missing
+   return [
+     {x: Math.round(w*0.05), y: Math.round(h*0.45), w: Math.round(w*0.43), h: Math.round(h*0.45)},
+     {x: Math.round(w*0.52), y: Math.round(h*0.45), w: Math.round(w*0.43), h: Math.round(h*0.45)}
+   ];
+ }
+ 
+ const r=rr.sort((a,b)=>(b[1]-b[0])-(a[1]-a[0]))[0];
+ const top=Math.max(0, y0 + r[0]*step - 15);
+ const bottom=Math.min(h, y0 + (r[1]+1)*step + 15);
+
+ const cols=new Array(Math.ceil(w/step)).fill(0);
+ for(let x=0; x<w; x+=step){
+  let n=0;
+  for(let y=top; y<bottom; y+=step){
+   const i=(y*w+x)*4;
+   if(isRationGreen(d[i], d[i+1], d[i+2])) n++;
+  }
+  cols[Math.floor(x/step)]=n;
+ }
+ 
+ const runs=projectionRuns(cols, Math.max(5, Math.floor((bottom-top)/step*0.05)));
+ const mid=Math.floor(w/(2*step));
+ const left=runs.filter(v=>((v[0]+v[1])/2) < mid);
+ const right=runs.filter(v=>((v[0]+v[1])/2) >= mid);
+ 
+ let xr=[];
+ if(left.length && right.length){
+   xr=[
+     [Math.min(...left.map(v=>v[0])), Math.max(...left.map(v=>v[1]))],
+     [Math.min(...right.map(v=>v[0])), Math.max(...right.map(v=>v[1]))]
+   ];
+ } else {
+   xr=[
+    [Math.floor(w*0.05/step), Math.floor((mid-15)/step)],
+    [Math.floor((mid+15)/step), Math.floor(w*0.95/step)]
+   ];
+ }
+ 
+ return xr.map(v=>{
+  const x=Math.max(0, v[0]*step - 10);
+  const x2=Math.min(w, (v[1]+1)*step + 10);
+  return {x, y:top, w:x2-x, h:bottom-top};
+ }).sort((a,b)=>a.x-b.x);
 }
 
-function deletePair(id) {
-    document.getElementById('pair-' + id).remove();
-    allCardsData = allCardsData.filter(card => card.id !== id);
+function cropCanvas(c,b){
+ const out=document.createElement('canvas');
+ out.width=Math.max(1,Math.round(b.w));out.height=Math.max(1,Math.round(b.h));
+ out.getContext('2d').drawImage(c,b.x,b.y,b.w,b.h,0,0,out.width,out.height);
+ return out;
 }
 
-// ── Get the current values from the image DOM (Live Adjustments) ──
-function getFitFromDOM(imgId) {
-    const img = document.getElementById(imgId);
-    return {
-        w: parseFloat(img.style.width),
-        h: parseFloat(img.style.height),
-        left: parseFloat(img.style.left),
-        top: parseFloat(img.style.top)
-    };
+// PAN exact-template crop for the supplied e-PAN PDF.
+// The printable PAN Front/Back cards are the two cards in the lower section.
+function extractPanCards(c){
+  const w=c.width, h=c.height;
+  const front={x:Math.round(w*.108),y:Math.round(h*.768),
+               w:Math.round(w*.401),h:Math.round(h*.180)};
+  const back ={x:Math.round(w*.515),y:Math.round(h*.768),
+               w:Math.round(w*.401),h:Math.round(h*.180)};
+  const clamp=b=>{
+    const x=Math.max(0,Math.min(w-1,b.x)), y=Math.max(0,Math.min(h-1,b.y));
+    const x2=Math.max(x+1,Math.min(w,b.x+b.w));
+    const y2=Math.max(y+1,Math.min(h,b.y+b.h));
+    return {x,y,w:x2-x,h:y2-y};
+  };
+  return {front:cropCanvas(c,clamp(front)),back:cropCanvas(c,clamp(back))};
 }
 
-// ── 🗂️ Direct Folder Save API or ZIP Fallback ──
-async function saveToFolder() {
-    if (allCardsData.length === 0) {
-        alert("সেভ করার মতো কোনো কার্ড নেই! আগে PDF আপলোড করুন।");
-        return;
-    }
-    
-    const quality = parseFloat(document.getElementById('save-quality').value);
-    const pBox = document.getElementById('processing-box');
-    
-    try {
-        if (window.showDirectoryPicker) {
-            const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-            
-            showProcessing(true);
-            pBox.innerHTML = "💾 কার্ডগুলো ফোল্ডারে সেভ হচ্ছে... দয়া করে অপেক্ষা করুন";
-            
-            for (let i = 0; i < allCardsData.length; i++) {
-                const card = allCardsData[i];
-                const liveFitFront = getFitFromDOM(`img-${card.id}-front`);
-                const liveFitBack = getFitFromDOM(`img-${card.id}-back`);
-                
-                const frontBlob = await getCardBlob(card.frontSrc, liveFitFront, quality);
-                const frontFile = await dirHandle.getFileHandle(`${card.fileName}_Front.jpg`, { create: true });
-                const frontWritable = await frontFile.createWritable();
-                await frontWritable.write(frontBlob);
-                await frontWritable.close();
-                
-                const backBlob = await getCardBlob(card.backSrc, liveFitBack, quality);
-                const backFile = await dirHandle.getFileHandle(`${card.fileName}_Back.jpg`, { create: true });
-                const backWritable = await backFile.createWritable();
-                await backWritable.write(backBlob);
-                await backWritable.close();
-            }
-            
-            pBox.innerHTML = "✅ সমস্ত কার্ড সফলভাবে ফোল্ডারে সেভ হয়েছে!";
-            setTimeout(() => { showProcessing(false); }, 3000);
-            return;
-        }
-    } catch (err) {
-        if (err.name === 'AbortError') return; 
-        console.log("Directory Picker error, falling back to ZIP.");
-    }
-    
-    // Fallback: JSZip
-    showProcessing(true);
-    pBox.innerHTML = "🗂️ ZIP ফাইল তৈরি হচ্ছে... দয়া করে অপেক্ষা করুন";
-    const zip = new JSZip(); 
-    
-    for (let i = 0; i < allCardsData.length; i++) {
-        const card = allCardsData[i];
-        const liveFitFront = getFitFromDOM(`img-${card.id}-front`);
-        const liveFitBack = getFitFromDOM(`img-${card.id}-back`);
-        
-        const frontBlob = await getCardBlob(card.frontSrc, liveFitFront, quality);
-        zip.file(`${card.fileName}_Front.jpg`, frontBlob);
-        
-        const backBlob = await getCardBlob(card.backSrc, liveFitBack, quality);
-        zip.file(`${card.fileName}_Back.jpg`, backBlob);
-    }
-    
-    zip.generateAsync({type:"blob"}).then(function(content) {
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(content);
-        link.download = "Pragati_Telecom_Cards.zip";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        pBox.innerHTML = "✅ ZIP ফাইল ডাউনলোড হয়েছে!";
-        setTimeout(() => { showProcessing(false); }, 3000);
-    });
+function detectCardRegion(c, type='custom'){
+ const w=c.width,h=c.height,ctx=c.getContext('2d');
+ const d=ctx.getImageData(0,0,w,h).data;
+
+ const gray=(x,y)=>{
+   const i=(y*w+x)*4;
+   return .299*d[i]+.587*d[i+1]+.114*d[i+2];
+ };
+ const colScore=x=>{
+   let score=0;
+   for(let y=2;y<h-2;y+=3){
+     const a=Math.abs(gray(x,y)-gray(x-2,y));
+     const b=Math.abs(gray(x,y)-gray(x+2,y));
+     if(a>28||b>28)score++;
+   }
+   return score/(h/3);
+ };
+ const rowScore=y=>{
+   let score=0;
+   for(let x=2;x<w-2;x+=3){
+     const a=Math.abs(gray(x,y)-gray(x,y-2));
+     const b=Math.abs(gray(x,y)-gray(x,y+2));
+     if(a>28||b>28)score++;
+   }
+   return score/(w/3);
+ };
+
+ const target=(type==='ration') ? 85.6/53.98 : 85.6/53.98;
+ const candidates=[];
+
+ const minW=Math.floor(w*.45), maxW=Math.floor(w*.98);
+ const minH=Math.floor(h*.25), maxH=Math.floor(h*.75);
+
+ for(let ww=minW;ww<=maxW;ww+=Math.max(20,Math.floor(w*.04))){
+   const hh=Math.max(minH,Math.min(maxH,Math.round(ww/target)));
+   if(hh>h)continue;
+   for(const yy of [0,Math.round((h-hh)/2),h-hh]){
+     const xx=Math.round((w-ww)/2);
+     const L=colScore(xx),R=colScore(xx+ww-1),T=rowScore(yy),B=rowScore(yy+hh-1);
+     const ratioPenalty=Math.abs((ww/hh)-target)/target;
+     const score=(L+R+T+B)*1.6-ratioPenalty*2;
+     candidates.push({x:xx,y:yy,w:ww,h:hh,score});
+   }
+ }
+ candidates.sort((a,b)=>b.score-a.score);
+ let best=candidates[0];
+
+ const srcRatio=w/h;
+ const ratioClose=Math.abs(srcRatio-target)/target;
+ if(ratioClose<.06) best={x:0,y:0,w,h,score:999};
+
+ if(!best || best.w<w*.45 || best.h<h*.22)
+   best={x:0,y:0,w,h,score:0};
+
+ return best;
+}
+function cropCanvasCoords(c,x,y,w,h){
+ const out=document.createElement('canvas');
+ out.width=Math.max(1,Math.round(w)); out.height=Math.max(1,Math.round(h));
+ out.getContext('2d').drawImage(c,x,y,w,h,0,0,out.width,out.height);
+ return out;
 }
 
-function getCardBlob(src, fit, quality) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const cw = 1011; const ch = 638; 
-            canvas.width = cw; canvas.height = ch;
-            const ctx = canvas.getContext('2d');
-            
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, cw, ch);
-            
-            const drawW = cw * (fit.w / 100);
-            const drawH = ch * (fit.h / 100);
-            const drawX = cw * (fit.left / 100);
-            const drawY = ch * (fit.top / 100);
-            
-            ctx.drawImage(img, drawX, drawY, drawW, drawH);
-            
-            canvas.toBlob((blob) => {
-                resolve(blob);
-            }, 'image/jpeg', quality);
-        };
-        img.src = src;
-    });
+function extractAadhaarFaces(c){
+ const w=c.width,h=c.height;
+ const xLeft=0.076, xMiddle=0.500, xRight=0.924, yTop=0.718, yBottom=0.930;
+ const mx=Math.max(2,Math.round(w*0.004));
+ const my=Math.max(2,Math.round(h*0.004));
+
+ const leftX=Math.max(0,Math.round(w*xLeft)-mx);
+ const midX=Math.round(w*xMiddle);
+ const rightX=Math.min(w,Math.round(w*xRight)+mx);
+ const top=Math.max(0,Math.round(h*yTop)-my);
+ const bottom=Math.min(h,Math.round(h*yBottom)+my);
+
+ const front=cropCanvasCoords(c, leftX, top, Math.max(1,midX-leftX), Math.max(1,bottom-top));
+ const back=cropCanvasCoords(c, midX, top, Math.max(1,rightX-midX), Math.max(1,bottom-top));
+ return {front,back};
 }
+
+function fit(c,b){
+ return {w:+(100*c.width/b.w).toFixed(3),h:+(100*c.height/b.h).toFixed(3),
+ left:+(-100*b.x/b.w).toFixed(3),top:+(-100*b.y/b.h).toFixed(3)}
+}
+
+async function ocrText(canvas){
+ try{
+  if(!ocrWorker) ocrWorker=await Tesseract.createWorker('eng');
+  const r=await ocrWorker.recognize(canvas);
+  return (r.data.text||'').toLowerCase().replace(/\s+/g,' ');
+ }catch(e){return ''}
+}
+function detectType(text,fileName){
+ const forced=mode!=='auto'?mode:null;
+ if(forced&&forced!=='custom')return forced;
+ const s=(text+' '+fileName).toLowerCase();
+ let best='custom',score=0;
+ for(const [k,p] of Object.entries(PROFILES)){
+  if(k==='custom')continue;
+  let n=p.keywords.reduce((a,x)=>a+(s.includes(x)?1:0),0);
+  if(n>score){score=n;best=k}
+ }
+ if(best==='custom'){
+  if(/aadhaar|uidai/.test(s))best='aadhaar';
+  else if(/\bpan\b|income tax/.test(s))best='pan';
+  else if(/ration|nfsa|pds/.test(s))best='ration';
+ }
+ return best;
+}
+
+function makeImg(src, f){
+ const im=document.createElement('img'); im.src=src;
+ im.style.width=f.w+'%';im.style.height=f.h+'%';im.style.left=f.left+'%';im.style.top=f.top+'%';
+ return im;
+}
+function addPair(front,back,profile,label,frontFit,backFit){
+ const id=++counter;
+ const pair=document.createElement('div');pair.className='pair';pair.id='pair-'+id;
+ const info=document.createElement('div');info.className='pair-info';
+ info.textContent='🧠 '+profile.name+' • '+profile.type;
+ pair.appendChild(info);
+ pair.appendChild(makeBox(front,frontFit,'সামনে / Front',id,'front'));
+ pair.appendChild(makeBox(back,backFit,'পেছনে / Back',id,'back'));
+ const del=document.createElement('button');del.className='btn red no-print';del.textContent='❌ মুছুন';
+ del.style.position='absolute';del.style.right='8px';del.style.top='8px';
+ del.onclick=()=>{pair.remove();cards=cards.filter(x=>x.id!==id)};
+ pair.appendChild(del);page.appendChild(pair);
+ cards.push({id,front,back,profile,fileName:cleanName(label)});
+}
+function makeBox(src,f,title,id,side){
+ const wrap=document.createElement('div');wrap.className='box-wrap';
+ const box=document.createElement('div');box.className='pvc';
+ const im=makeImg(src,f);im.id=`img-${id}-${side}`;box.appendChild(im);wrap.appendChild(box);
+ const c=document.createElement('div');c.className='controls no-print';
+ c.innerHTML=`<strong>${title}</strong>
+ <div class="detect"><span class="badge">FULL CARD</span><span class="badge">AUTO FIT</span><span class="badge">FRONT/BACK</span></div>`;
+ const vals={w:f.w,h:f.h,left:f.left,top:f.top};
+ [['চওড়া','w',30,900],['লম্বা','h',30,1200],['ডানে-বামে','left',-900,100],['উপরে-নিচে','top',-1000,100]].forEach(([lab,k,min,max])=>{
+  const row=document.createElement('div');row.className='row';
+  row.innerHTML=`<label>${lab}</label><input type="range" min="${min}" max="${max}" step=".1" value="${Math.min(max,Math.max(min,vals[k]))}"><output>${vals[k].toFixed(1)}%</output>`;
+  const r=row.querySelector('input'),o=row.querySelector('output');
+  r.oninput=()=>{vals[k]=+r.value;o.textContent=vals[k].toFixed(1)+'%';im.style[k==='w'?'width':k==='h'?'height':k==='left'?'left':'top']=r.value+'%'};
+  c.appendChild(row);
+ });
+ const reset=document.createElement('button');reset.className='btn gray';reset.style.width='100%';reset.style.marginTop='5px';reset.textContent='↻ Smart Auto-Fit';
+ reset.onclick=()=>{Object.assign(vals,f);im.style.width=f.w+'%';im.style.height=f.h+'%';im.style.left=f.left+'%';im.style.top=f.top+'%';c.querySelectorAll('input').forEach((r,i)=>{r.value=[f.w,f.h,f.left,f.top][i];r.nextElementSibling.textContent=[f.w,f.h,f.left,f.top][i].toFixed(1)+'%'})};
+ c.appendChild(reset);wrap.appendChild(c);return wrap;
+}
+
+async function processFiles(files){
+ if(!files.length)return;
+ busy(true,`📥 ${files.length}টি ফাইল নেওয়া হচ্ছে...`);
+ if($('empty'))$('empty').remove();
+ try{
+  for(let i=0;i<files.length;i++){
+   const file=files[i]; setStatus(`Analyzing ${i+1}/${files.length}: ${file.name}`);
+   let canvases=[];
+   if(file.type==='application/pdf'||/\.pdf$/i.test(file.name)){
+    const pdf=await pdfDoc(file);
+    for(let p=1;p<=Math.min(pdf.numPages,2);p++)canvases.push(await renderPdfPage(pdf,p));
+    if(pdf.numPages>2) setStatus(`${file.name}: প্রথম 2 page analyze করা হয়েছে`);
+   }else canvases=[await imageCanvas(file)];
+
+   let text='';
+   if(mode==='auto' || $('profile').value==='auto'){
+    busy(true,`🧠 ${file.name} — Document type detect করা হচ্ছে...`);
+    text=await ocrText(canvases[0]);
+   }
+   const type=detectType(text,file.name);
+   const profile=PROFILES[type]||PROFILES.custom;
+   const label=profile.name+' — '+file.name;
+
+   let frontC=canvases[0], backC=canvases[1]||null;
+   let ff, bf;
+
+   if(type==='aadhaar'){
+     const faces=extractAadhaarFaces(canvases[0]);
+     frontC=faces.front;
+     backC=faces.back;
+     ff={w:100,h:100,left:0,top:0};
+     bf={w:100,h:100,left:0,top:0};
+   } else if(type==='ration'){
+     const rationBoxes = extractRationCards(canvases[0]);
+     frontC = cropCanvas(canvases[0], rationBoxes[0] || {x:0, y:0, w:canvases[0].width/2, h:canvases[0].height});
+     backC  = cropCanvas(canvases[0], rationBoxes[1] || {x:canvases[0].width/2, y:0, w:canvases[0].width/2, h:canvases[0].height});
+     ff={w:100,h:100,left:0,top:0};
+     bf={w:100,h:100,left:0,top:0};
+   } else if(type==='pan'){
+     // PAN PDF uses a fixed template. Do not run generic border detection.
+     const panFaces=extractPanCards(canvases[0]);
+     frontC=panFaces.front;
+     backC=panFaces.back;
+     ff={w:100,h:100,left:0,top:0};
+     bf={w:100,h:100,left:0,top:0};
+   } else {
+     const frontRegion=detectCardRegion(frontC,type);
+     const backRegion=backC?detectCardRegion(backC,type):frontRegion;
+     ff=fit(frontC,frontRegion);
+     bf=fit(backC||frontC,backRegion);
+   }
+
+   const front=frontC.toDataURL('image/jpeg',.97);
+   const back=(backC||frontC).toDataURL('image/jpeg',.97);
+   addPair(front,back,profile,label,ff,bf);
+   setStatus(`✓ ${profile.name} detected — ${file.name}`);
+  }
+ }catch(e){
+  console.error(e);alert('❌ ফাইল প্রসেস করতে সমস্যা হয়েছে: '+e.message);
+ }finally{busy(false);input.value=''}
+}
+
+$('save-btn').onclick=async()=>{
+ if(!cards.length){alert('আগে ফাইল আপলোড করুন।');return}
+ busy(true,'💾 JPG ফাইল তৈরি হচ্ছে...');
+ const zip=new JSZip();
+ for(const c of cards){
+  for(const side of ['front','back']){
+   const im=document.querySelector(`#img-${c.id}-${side}`);
+   if(!im)continue;
+   const canvas=document.createElement('canvas');canvas.width=1011;canvas.height=638;
+   const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+   const w=parseFloat(im.style.width),h=parseFloat(im.style.height),l=parseFloat(im.style.left),t=parseFloat(im.style.top);
+   await new Promise(res=>{const x=new Image();x.onload=()=>{ctx.drawImage(x,canvas.width*l/100,canvas.height*t/100,canvas.width*w/100,canvas.height*h/100);res()};x.src=im.src});
+   const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.95));
+   zip.file(`${c.fileName}_${side}.jpg`,blob);
+  }
+ }
+ const content=await zip.generateAsync({type:'blob'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(content);a.download='Pragati_Smart_Cards.zip';a.click();
+ setStatus('✓ সব ফাইল ZIP-এ সেভ হয়েছে');busy(false);
+};
 </script>
 </body>
 </html>
